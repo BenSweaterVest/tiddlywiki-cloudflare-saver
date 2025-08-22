@@ -1,0 +1,326 @@
+\define config-base() $:/config/cloudflare-saver/
+
+\define setup-step(number, title, content)
+<div class="cloudflare-setup-step">
+<h4>$number$. $title$</h4>
+<div class="cloudflare-setup-content">
+$content$
+</div>
+</div>
+\end
+
+<style>
+.cloudflare-saver-panel {
+    max-width: 800px;
+}
+
+.cloudflare-status-indicator {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    font-weight: bold;
+    margin-left: 10px;
+}
+
+.cloudflare-status-enabled {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.cloudflare-status-disabled {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.cloudflare-setup-guide {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    margin: 20px 0;
+}
+
+.cloudflare-setup-step {
+    border-bottom: 1px solid #dee2e6;
+    padding: 15px;
+}
+
+.cloudflare-setup-step:last-child {
+    border-bottom: none;
+}
+
+.cloudflare-setup-step h4 {
+    margin: 0 0 10px 0;
+    color: #0969da;
+}
+
+.cloudflare-setup-content {
+    margin-left: 15px;
+}
+
+.cloudflare-warning {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 4px;
+    padding: 10px;
+    margin: 10px 0;
+    color: #856404;
+}
+
+.cloudflare-success {
+    background: #d1ecf1;
+    border: 1px solid #bee5eb;
+    border-radius: 4px;
+    padding: 10px;
+    margin: 10px 0;
+    color: #0c5460;
+}
+
+.cloudflare-test-area {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 15px;
+    margin-top: 20px;
+}
+</style>
+
+<div class="cloudflare-saver-panel">
+
+! Cloudflare Saver Configuration
+
+<span class="cloudflare-status-indicator {{$:/config/cloudflare-saver/enabled}}">
+<$list filter="[{$:/config/cloudflare-saver/enabled}match[yes]]" emptyMessage="❌ Disabled">
+✅ Enabled
+</$list>
+</span>
+
+!! Quick Enable/Disable
+
+<div class="tc-control-panel">
+<$checkbox tiddler=<<config-base>>"enabled" field="text" checked="yes" unchecked="no" default="no"> Enable Cloudflare Saver as an additional save option</$checkbox>
+<div class="tc-control-panel-hint">
+When enabled, Cloudflare saving will be available alongside your existing save methods
+</div>
+</div>
+
+<$list filter="[{$:/config/cloudflare-saver/enabled}match[no]]">
+<div class="cloudflare-warning">
+⚠️ Cloudflare Saver is currently disabled. Enable it above to use this save method.
+</div>
+</$list>
+
+!! Setup Guide
+
+<$details summary="📋 Complete Setup Instructions (Click to expand)">
+
+<div class="cloudflare-setup-guide">
+
+<<setup-step "1" "Create Cloudflare Pages Site" """
+1. Go to [Cloudflare Pages](https://pages.cloudflare.com/)
+2. Connect your GitHub account
+3. Create a new Pages project from your TiddlyWiki repository
+4. Deploy your site (e.g., `https://my-tiddlywiki.pages.dev`)
+""">>
+
+<<setup-step "2" "Create GitHub Personal Access Token" """
+1. Go to GitHub → Settings → Developer settings → [Personal access tokens](https://github.com/settings/tokens)
+2. Click "Generate new token (classic)"
+3. Set expiration and select scopes:
+   - ✅ `repo` (Full control of private repositories)
+   - ✅ `workflow` (Update GitHub Action workflows)
+4. Copy the token (save it securely - you won't see it again!)
+""">>
+
+<<setup-step "3" "Create Cloudflare Function" """
+Create a file at `functions/save.js` in your repository:
+
+```javascript
+export async function onRequestPost(context) {
+  const { request, env } = context;
+  
+  try {
+    const { content, password } = await request.json();
+    
+    // Verify password
+    if (password !== env.SAVE_PASSWORD) {
+      return new Response(JSON.stringify({ error: 'Invalid password' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Save to GitHub
+    const response = await fetch(
+      `https://api.github.com/repos/${env.GITHUB_REPO}/contents/index.html`,
+      {
+        method: 'PUT',
+        headers: {
+          'Authorization': `token ${env.GITHUB_TOKEN}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: `Update TiddlyWiki ${new Date().toISOString()}`,
+          content: btoa(unescape(encodeURIComponent(content))),
+          sha: env.CURRENT_SHA // You'll need to implement SHA retrieval
+        })
+      }
+    );
+    
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (error) {
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+}
+```
+""">>
+
+<<setup-step "4" "Set Environment Variables" """
+In Cloudflare Pages → Settings → Environment Variables:
+
+| Variable | Value | Description |
+|----------|-------|-------------|
+| `GITHUB_TOKEN` | `ghp_xxxxxxxxxxxx` | Your GitHub Personal Access Token |
+| `GITHUB_REPO` | `username/repo-name` | Your GitHub repository |
+| `SAVE_PASSWORD` | `your-secure-password` | Password for saving |
+
+**Important**: Set these for **Production** environment!
+""">>
+
+<<setup-step "5" "Configure Plugin Settings" """
+Set your Cloudflare Function URL below in the **Connection Settings** section.
+
+Example: `https://my-tiddlywiki.pages.dev/functions/save`
+""">>
+
+</div>
+
+</$details>
+
+!! Connection Settings
+
+!!! Cloudflare Function URL
+
+<div class="tc-control-panel">
+<$edit-text tiddler=<<config-base>>"endpoint" default="" placeholder="https://your-site.pages.dev/functions/save" class="tc-edit-texteditor" size="50"/>
+<div class="tc-control-panel-hint">
+The full URL to your deployed Cloudflare Function (including https://)
+</div>
+</div>
+
+<$list filter="[{$:/config/cloudflare-saver/endpoint}!match[]]" emptyMessage="""
+<div class="cloudflare-warning">
+⚠️ Please enter your Cloudflare Function URL above
+</div>
+""">
+<div class="cloudflare-success">
+✅ Endpoint configured: {{$:/config/cloudflare-saver/endpoint}}
+</div>
+</$list>
+
+!!! Request Timeout (seconds)
+
+<div class="tc-control-panel">
+<$edit-text tiddler=<<config-base>>"timeout" default="30" class="tc-edit-texteditor" size="5"/>
+<div class="tc-control-panel-hint">
+How long to wait for save requests before timing out
+</div>
+</div>
+
+!! User Experience
+
+!!! Enable Save Notifications
+
+<div class="tc-control-panel">
+<$checkbox tiddler=<<config-base>>"notifications" field="text" checked="yes" unchecked="no" default="yes"> Show visual notifications during save process</$checkbox>
+</div>
+
+!!! Auto-retry Failed Saves
+
+<div class="tc-control-panel">
+<$checkbox tiddler=<<config-base>>"auto-retry" field="text" checked="yes" unchecked="no" default="yes"> Automatically retry failed saves (up to 3 attempts)</$checkbox>
+</div>
+
+!!! Remember Password (Session Only)
+
+<div class="tc-control-panel">
+<$checkbox tiddler=<<config-base>>"remember-password" field="text" checked="yes" unchecked="no" default="no"> Remember password until browser refresh</$checkbox>
+<div class="tc-control-panel-hint">
+⚠️ Only enable this on trusted devices. Password is cleared on page reload.
+</div>
+</div>
+
+!! Development & Debugging
+
+!!! Enable Debug Logging
+
+<div class="tc-control-panel">
+<$checkbox tiddler=<<config-base>>"debug" field="text" checked="yes" unchecked="no" default="no"> Log detailed information to browser console</$checkbox>
+</div>
+
+---
+
+!! Current Status
+
+<div class="cloudflare-test-area">
+
+|!Setting |!Value |!Status |
+|Enabled |{{$:/config/cloudflare-saver/enabled}} |<$list filter="[{$:/config/cloudflare-saver/enabled}match[yes]]" emptyMessage="❌">✅</$list> |
+|Endpoint URL |<$list filter="[{$:/config/cloudflare-saver/endpoint}!match[]]" emptyMessage="❌ Not configured">{{$:/config/cloudflare-saver/endpoint}}</$list> |✅ |
+|Timeout |{{$:/config/cloudflare-saver/timeout}} seconds |✅ |
+|Notifications |{{$:/config/cloudflare-saver/notifications}} |✅ |
+|Auto-retry |{{$:/config/cloudflare-saver/auto-retry}} |✅ |
+|Remember Password |{{$:/config/cloudflare-saver/remember-password}} |✅ |
+|Debug Mode |{{$:/config/cloudflare-saver/debug}} |✅ |
+
+!! Test Connection
+
+<$list filter="[{$:/config/cloudflare-saver/enabled}match[yes]] [{$:/config/cloudflare-saver/endpoint}!match[]] +[limit[1]]" emptyMessage="""
+<div class="cloudflare-warning">
+⚠️ Please enable the saver and configure the endpoint URL before testing
+</div>
+""">
+
+<$button class="tc-btn-big-green">
+{{$:/core/images/save-button}} Test Cloudflare Save
+<$action-sendmessage $message="tm-save-wiki" param="cloudflare"/>
+</$button>
+
+<div class="tc-control-panel-hint">
+This will attempt to save your wiki using the Cloudflare Function to test the connection.
+</div>
+
+</$list>
+
+</div>
+
+!! How to Use
+
+Once configured and enabled:
+
+1. **Multiple Save Options**: Your existing save methods (download, GitHub, etc.) continue to work
+2. **Access Cloudflare Saver**: Use the standard save button - if multiple savers are available, you may see options
+3. **Direct Save**: The save process will prompt for your password and save to GitHub via Cloudflare
+4. **Save Notifications**: Watch for success/failure notifications (if enabled)
+
+!! Troubleshooting
+
+<$details summary="🔧 Common Issues & Solutions">
+
+* **"Save failed" errors**: Enable debug mode and check browser console
+* **"Invalid password" errors**: Verify `SAVE_PASSWORD` environment variable in Cloudflare
+* **"Function not found" errors**: Ensure `functions/save.js` is deployed to Cloudflare Pages
+* **Timeout errors**: Increase timeout setting or check Cloudflare Function performance
+* **No save prompt**: Ensure saver is enabled and endpoint URL is configured
+
+</$details>
+
+</div>

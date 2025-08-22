@@ -1,0 +1,35 @@
+! TiddlyWiki Cloudflare Saver Plugin
+
+!! Overview
+
+This plugin enables saving your TiddlyWiki directly to a GitHub repository via Cloudflare Functions with secure password authentication, working as an additional save option alongside your existing save methods.
+
+!! Key Features
+
+* 🔐 **Secure**: Password-protected saves with environment variable storage
+* ⚡ **Fast**: Serverless architecture via Cloudflare Functions
+* 🔄 **Reliable**: Built-in retry logic and comprehensive error handling
+* 📱 **Responsive**: Visual notifications for save status
+* 🛠️ **Configurable**: Comprehensive settings panel with debug mode
+* 🤝 **Compatible**: Works alongside existing TiddlyWiki save methods
+
+!! Quick Setup
+
+# Enable the plugin in Control Panel → Settings → Cloudflare Saver
+# Follow the complete setup guide (click "Complete Setup Instructions")
+# Configure your Cloudflare Function endpoint URL
+# Test the connection using the built-in test button
+
+!! How It Works
+
+This plugin adds Cloudflare saving as an additional option to your existing save methods. When enabled, you can save your TiddlyWiki through a Cloudflare Function that securely commits changes to your GitHub repository.
+
+!! Support
+
+For detailed setup instructions, troubleshooting, and support:
+https://github.com/BenSweaterVest/tiddlywiki-cloudflare-saver
+
+!! Version
+
+Version 1.0.0 - Initial release with full functionality and comprehensive documentation.
+
