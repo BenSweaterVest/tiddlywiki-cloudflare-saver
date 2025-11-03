@@ -129,8 +129,7 @@ When enabled, Cloudflare saving will be available alongside your existing save m
 1. Go to GitHub → Settings → Developer settings → [Personal access tokens](https://github.com/settings/tokens)
 2. Click "Generate new token (classic)"
 3. Set expiration and select scopes:
-   - ✅ `repo` (Full control of private repositories)
-   - ✅ `workflow` (Update GitHub Action workflows)
+   - ✅ `repo` (Full control of private repositories) - **This is the only scope needed**
 4. Copy the token (save it securely - you won't see it again!)
 """>>
 
