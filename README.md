@@ -64,21 +64,44 @@ Once configured:
 
 Set these in Cloudflare Pages → Settings → Environment Variables → **Production**:
 
+### Required Variables
+
 | Variable | Type | Example | Description |
 |----------|------|---------|-------------|
 | `GITHUB_TOKEN` | **🔐 Encrypted** | `ghp_xxxxxxxxxxxx` | GitHub Personal Access Token with `repo` scope |
 | `GITHUB_REPO` | **📝 Plaintext** | `username/my-tiddlywiki` | Your GitHub repository (username/repo-name) |
 | `SAVE_PASSWORD` | **🔐 Encrypted** | `my-secure-password-123` | Password for authenticating saves |
 
+### Optional Variables (New in v1.0+)
+
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `FILE_PATH` | **📝 Plaintext** | `index.html` | Path to your TiddlyWiki file in the repository |
+| `MAX_CONTENT_SIZE` | **📝 Plaintext** | `52428800` | Maximum file size in bytes (50MB default) |
+| `ALLOWED_ORIGINS` | **📝 Plaintext** | `*` | Comma-separated allowed origins for CORS (e.g., `https://my-wiki.pages.dev`) |
+
 ### Important Security Notes:
 - **🔐 Encrypted variables**: `GITHUB_TOKEN` and `SAVE_PASSWORD` should be set as **encrypted/secret** variables
-- **📝 Plaintext variables**: `GITHUB_REPO` can be plaintext (it's not sensitive)
+- **📝 Plaintext variables**: `GITHUB_REPO`, `FILE_PATH`, `MAX_CONTENT_SIZE`, and `ALLOWED_ORIGINS` can be plaintext
 - **Production Environment**: Always set these for the **Production** environment, not Preview
 - **Token Permissions**: GitHub token only needs `repo` scope - don't give it broader permissions
+- **CORS Security**: Set `ALLOWED_ORIGINS` to your specific domain(s) instead of `*` for better security
+- **Rate Limiting**: Built-in rate limiting of 30 requests per minute per IP address
 
 ## Cloudflare Function
 
-Create `functions/save.js` in your repository root. The complete function code is provided in the plugin documentation and setup guide.
+Create `functions/save.js` in your repository root. The complete, production-ready function code is available in `demo/functions/save.js` in this repository.
+
+### Key Features:
+* **Robust UTF-8 Encoding**: Proper handling of all Unicode characters including emoji
+* **Rate Limiting**: 30 requests per minute per IP address
+* **Content Validation**: Size limits and empty content detection
+* **Conflict Resolution**: Automatic retry with exponential backoff for concurrent saves
+* **Configurable CORS**: Restrict to specific origins for enhanced security
+* **Bearer Token Auth**: Modern GitHub API authentication
+* **Flexible Configuration**: All paths and limits configurable via environment variables
+
+Simply copy the file from `demo/functions/save.js` to `functions/save.js` in your repository root.
 
 ## Configuration Options
 
@@ -98,18 +121,44 @@ Create `functions/save.js` in your repository root. The complete function code i
 
 1. **"Cloudflare saver not configured"**
    - Solution: Enter your Cloudflare Function URL in settings
+   - Verify the saver is enabled in Control Panel → Settings → Cloudflare Saver
 
 2. **"Invalid password" errors**
    - Solution: Check `SAVE_PASSWORD` environment variable in Cloudflare Pages
+   - Ensure it's set for the **Production** environment, not Preview
+   - Verify it's marked as encrypted/secret
 
 3. **"Function not found" (404 errors)**
-   - Solution: Ensure `functions/save.js` exists and is deployed
+   - Solution: Ensure `functions/save.js` exists in repository root and is deployed
+   - Check Cloudflare Pages deployment logs for function deployment status
 
 4. **"Authentication failed" (401 errors)**
    - Solution: Verify `GITHUB_TOKEN` has correct permissions and isn't expired
+   - Ensure token has `repo` scope
+   - Try regenerating the token if it's old
 
-5. **Timeout errors**
+5. **"Rate limit exceeded" (429 errors)**
+   - Solution: Wait 60 seconds before trying again
+   - Default limit is 30 requests per minute per IP
+   - This protects against brute force attacks
+
+6. **Timeout errors**
    - Solution: Increase timeout in settings or check Cloudflare Function performance
+   - Check GitHub API status at https://www.githubstatus.com/
+
+7. **"Content too large" (413 errors)**
+   - Solution: Your TiddlyWiki exceeds the size limit (default 50MB)
+   - Increase `MAX_CONTENT_SIZE` environment variable if needed
+   - Consider archiving old content to reduce file size
+
+8. **CORS errors in browser console**
+   - Solution: Check `ALLOWED_ORIGINS` environment variable
+   - Ensure your TiddlyWiki URL is in the allowed origins list
+   - Use `*` for testing (less secure) or specific domains for production
+
+9. **Unicode/emoji rendering incorrectly**
+   - Solution: Ensure you're using the updated `demo/functions/save.js` code
+   - The new version has proper UTF-8 encoding support
 
 ### Debug Mode
 
@@ -131,11 +180,16 @@ Enable debug mode in settings to see detailed logs in your browser console:
 
 ## Security Considerations
 
-* **Password Storage**: Passwords are only stored in memory during browser session
-* **Environment Variables**: Sensitive data (tokens, passwords) stored securely in Cloudflare
+* **Password Storage**: Passwords are only stored in memory during browser session (never persisted)
+* **Environment Variables**: Sensitive data (tokens, passwords) stored securely in Cloudflare as encrypted secrets
 * **HTTPS Only**: All communication encrypted via HTTPS
-* **Token Permissions**: GitHub token only needs `repo` scope
+* **Token Permissions**: GitHub token only needs `repo` scope (principle of least privilege)
 * **No Client Secrets**: No sensitive data exposed in browser/plugin code
+* **Rate Limiting**: Built-in protection against brute force attacks (30 requests/minute per IP)
+* **Content Validation**: File size limits and content validation prevent abuse
+* **CORS Protection**: Configurable origin restrictions prevent unauthorized access
+* **Conflict Resolution**: Automatic handling of concurrent save attempts
+* **Bearer Token Auth**: Uses modern GitHub API authentication (not deprecated `token` prefix)
 
 ## Multiple Saver Support
 

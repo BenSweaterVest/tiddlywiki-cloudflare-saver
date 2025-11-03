@@ -1,0 +1,673 @@
+title: $:/plugins/BenSweaterVest/cloudflare-saver/plugin.info
+type: application/json
+
+{
+  "title": "$:/plugins/BenSweaterVest/cloudflare-saver",
+  "description": "Save TiddlyWiki to GitHub via Cloudflare Functions with password authentication",
+  "author": "BenSweaterVest",
+  "version": "1.0.0",
+  "core-version": ">=5.1.22",
+  "source": "https://github.com/BenSweaterVest/tiddlywiki-cloudflare-saver",
+  "plugin-type": "plugin",
+  "list": "readme settings"
+}
+
+---
+
+title: $:/plugins/BenSweaterVest/cloudflare-saver/saver
+type: application/javascript
+module-type: saver
+
+/*\
+title: $:/plugins/BenSweaterVest/cloudflare-saver/saver.js
+type: application/javascript
+module-type: saver
+
+Cloudflare Functions saver for TiddlyWiki - Additional Saver Option
+
+This saver allows TiddlyWiki to save to GitHub via a Cloudflare Function.
+It works as an additional save option alongside other savers.
+
+Features:
+- Password authentication
+- Auto-retry with exponential backoff
+- Session password memory
+- Visual notifications
+- Comprehensive error handling
+
+\*/
+(function(){
+
+"use strict";
+
+/**
+ * CloudflareSaver constructor
+ * @param {Object} wiki - TiddlyWiki wiki object
+ */
+var CloudflareSaver = function(wiki) {
+    this.wiki = wiki;
+    this.sessionPassword = null; // Store password for session if enabled
+};
+
+CloudflareSaver.prototype.save = function(text, method, callback, options) {
+    var self = this;
+    options = options || {};
+
+    // Check if this saver is enabled
+    var enabled = self.wiki.getTiddlerText("$:/config/cloudflare-saver/enabled", "no") === "yes";
+    if(!enabled) {
+        return false; // Let other savers handle it
+    }
+
+    // Only handle saves when explicitly selected
+    if(method !== "save") {
+        return false;
+    }
+    
+    var config = {
+        endpoint: self.wiki.getTiddlerText("$:/config/cloudflare-saver/endpoint", ""),
+        timeout: parseInt(self.wiki.getTiddlerText("$:/config/cloudflare-saver/timeout", "30")) * 1000,
+        notifications: self.wiki.getTiddlerText("$:/config/cloudflare-saver/notifications", "yes") === "yes",
+        autoRetry: self.wiki.getTiddlerText("$:/config/cloudflare-saver/auto-retry", "yes") === "yes",
+        rememberPassword: self.wiki.getTiddlerText("$:/config/cloudflare-saver/remember-password", "no") === "yes",
+        debug: self.wiki.getTiddlerText("$:/config/cloudflare-saver/debug", "no") === "yes"
+    };
+    
+    // Validate configuration
+    if(!config.endpoint || config.endpoint.trim() === "") {
+        callback("Cloudflare saver not configured. Please set endpoint URL in settings.");
+        return false;
+    }
+    
+    if(config.debug) {
+        console.log("[CloudflareSaver] Starting save process");
+    }
+    
+    var password = null;
+    if(config.rememberPassword && self.sessionPassword) {
+        password = self.sessionPassword;
+    } else {
+        password = prompt("Enter Cloudflare save password:");
+        if (!password) {
+            callback("Cloudflare save cancelled by user");
+            return false;
+        }
+        if(config.rememberPassword) {
+            self.sessionPassword = password;
+        }
+    }
+
+    if(config.notifications && $tw.notifier) {
+        $tw.notifier.display("$:/plugins/BenSweaterVest/cloudflare-saver/notifications/saving");
+    }
+
+    self._performSave(text, password, callback, config, 0);
+    return true;
+};
+
+CloudflareSaver.prototype._performSave = function(text, password, callback, config, retryCount) {
+    var self = this;
+    var maxRetries = config.autoRetry ? 3 : 0;
+    
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", config.endpoint, true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.timeout = config.timeout;
+    
+    xhr.onload = function() {
+        if(xhr.status === 200) {
+            if(config.debug) {
+                console.log("[CloudflareSaver] Save successful");
+            }
+            callback(null);
+            if(config.notifications && $tw.notifier) {
+                $tw.notifier.display("$:/plugins/BenSweaterVest/cloudflare-saver/notifications/success");
+            }
+        } else {
+            self._handleSaveError(xhr, password, text, callback, config, retryCount);
+        }
+    };
+    
+    xhr.onerror = function() {
+        self._handleSaveError(xhr, password, text, callback, config, retryCount);
+    };
+    
+    xhr.ontimeout = function() {
+        self._handleSaveError(xhr, password, text, callback, config, retryCount);
+    };
+    
+    try {
+        var payload = {
+            content: text,
+            password: password,
+            timestamp: new Date().toISOString(),
+            retryCount: retryCount
+        };
+        xhr.send(JSON.stringify(payload));
+    } catch(e) {
+        callback("Failed to send Cloudflare save request: " + e.message);
+    }
+};
+
+CloudflareSaver.prototype._handleSaveError = function(xhr, password, text, callback, config, retryCount) {
+    var self = this;
+    var maxRetries = config.autoRetry ? 3 : 0;
+
+    var errorMsg = "Cloudflare save failed";
+    if(xhr.status) {
+        errorMsg += ": HTTP " + xhr.status;
+        if(xhr.statusText) {
+            errorMsg += " " + xhr.statusText;
+        }
+    }
+
+    // Parse response for detailed error information
+    if(xhr.responseText) {
+        try {
+            var response = JSON.parse(xhr.responseText);
+            if(response.error) {
+                errorMsg += " - " + response.error;
+            }
+            // Add rate limit information if available
+            if(response.resetIn) {
+                errorMsg += " (retry in " + response.resetIn + " seconds)";
+            }
+        } catch(e) {
+            if(xhr.responseText.length < 200) {
+                errorMsg += " - " + xhr.responseText;
+            }
+        }
+    }
+
+    // Handle specific HTTP status codes
+    if(xhr.status === 401) {
+        self.sessionPassword = null;
+        errorMsg = "Cloudflare authentication failed. Please check your password.";
+    } else if(xhr.status === 429) {
+        errorMsg = "Rate limit exceeded. Please wait a minute before trying again.";
+    } else if(xhr.status === 413) {
+        errorMsg = "Content too large. Your TiddlyWiki exceeds the maximum allowed size.";
+    } else if(xhr.status === 409) {
+        errorMsg = "Conflict detected. Another save may be in progress.";
+    }
+
+    if(config.debug) {
+        console.error("[CloudflareSaver] Error:", errorMsg, {
+            status: xhr.status,
+            retryCount: retryCount,
+            willRetry: retryCount < maxRetries && xhr.status !== 401
+        });
+    }
+
+    // Retry logic (don't retry auth failures or rate limits)
+    if(retryCount < maxRetries && xhr.status !== 401 && xhr.status !== 429) {
+        var retryDelay = Math.min(1000 * Math.pow(2, retryCount), 10000);
+        if(config.debug) {
+            console.log("[CloudflareSaver] Retrying in " + (retryDelay / 1000) + " seconds...");
+        }
+        setTimeout(function() {
+            self._performSave(text, password, callback, config, retryCount + 1);
+        }, retryDelay);
+    } else {
+        callback(errorMsg);
+        if(config.notifications && $tw.notifier) {
+            $tw.notifier.display("$:/plugins/BenSweaterVest/cloudflare-saver/notifications/failure");
+        }
+    }
+};
+
+CloudflareSaver.prototype.info = {
+    name: "cloudflare",
+    priority: 1000, // Lower priority so it doesn't override other savers
+    capabilities: ["save", "autosave"]
+};
+
+exports.CloudflareSaver = CloudflareSaver;
+
+})();
+
+
+
+---
+
+title: $:/plugins/BenSweaterVest/cloudflare-saver/startup
+type: application/javascript
+module-type: startup
+
+/*\
+title: $:/plugins/BenSweaterVest/cloudflare-saver/startup.js
+type: application/javascript
+module-type: startup
+
+Startup module for Cloudflare Saver plugin - Register as additional saver
+\*/
+(function(){
+
+"use strict";
+
+exports.name = "cloudflare-saver-startup";
+exports.platforms = ["browser"];
+exports.after = ["startup"];
+exports.synchronous = true;
+
+exports.startup = function() {
+    // Don't automatically set as default saver - let users choose
+    
+    // Set up configuration defaults
+    var configDefaults = {
+        "$:/config/cloudflare-saver/endpoint": "",
+        "$:/config/cloudflare-saver/timeout": "30",
+        "$:/config/cloudflare-saver/notifications": "yes",
+        "$:/config/cloudflare-saver/auto-retry": "yes",
+        "$:/config/cloudflare-saver/remember-password": "no",
+        "$:/config/cloudflare-saver/debug": "no",
+        "$:/config/cloudflare-saver/enabled": "no"
+    };
+    
+    Object.keys(configDefaults).forEach(function(title) {
+        if(!$tw.wiki.getTiddler(title)) {
+            $tw.wiki.addTiddler(new $tw.Tiddler({
+                title: title,
+                text: configDefaults[title]
+            }));
+        }
+    });
+
+    var enabled = $tw.wiki.getTiddlerText("$:/config/cloudflare-saver/enabled", "no") === "yes";
+    console.log("[CloudflareSaver] Plugin loaded successfully" + (enabled ? " and enabled" : " (disabled)"));
+};
+
+})();
+
+
+
+---
+
+title: $:/plugins/BenSweaterVest/cloudflare-saver/settings
+type: text/vnd.tiddlywiki
+tags: $:/tags/ControlPanel/SettingsTab
+caption: Cloudflare Saver
+
+\define config-base() $:/config/cloudflare-saver/
+
+\define setup-step(number, title, content)
+<div class="cloudflare-setup-step">
+<h4>$number$. $title$</h4>
+<div class="cloudflare-setup-content">
+$content$
+</div>
+</div>
+\end
+
+<style>
+.cloudflare-saver-panel {
+    max-width: 800px;
+}
+
+.cloudflare-status-indicator {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    font-weight: bold;
+    margin-left: 10px;
+}
+
+.cloudflare-status-enabled {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.cloudflare-status-disabled {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.cloudflare-setup-guide {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    margin: 20px 0;
+}
+
+.cloudflare-setup-step {
+    border-bottom: 1px solid #dee2e6;
+    padding: 15px;
+}
+
+.cloudflare-setup-step:last-child {
+    border-bottom: none;
+}
+
+.cloudflare-setup-step h4 {
+    margin: 0 0 10px 0;
+    color: #0969da;
+}
+
+.cloudflare-setup-content {
+    margin-left: 15px;
+}
+
+.cloudflare-warning {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 4px;
+    padding: 10px;
+    margin: 10px 0;
+    color: #856404;
+}
+
+.cloudflare-success {
+    background: #d1ecf1;
+    border: 1px solid #bee5eb;
+    border-radius: 4px;
+    padding: 10px;
+    margin: 10px 0;
+    color: #0c5460;
+}
+
+.cloudflare-test-area {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 15px;
+    margin-top: 20px;
+}
+</style>
+
+<div class="cloudflare-saver-panel">
+
+! Cloudflare Saver Configuration
+
+<span class="cloudflare-status-indicator {{$:/config/cloudflare-saver/enabled}}">
+<$list filter="[{$:/config/cloudflare-saver/enabled}match[yes]]" emptyMessage="❌ Disabled">
+✅ Enabled
+</$list>
+</span>
+
+!! Quick Enable/Disable
+
+<div class="tc-control-panel">
+<$checkbox tiddler=<<config-base>>"enabled" field="text" checked="yes" unchecked="no" default="no"> Enable Cloudflare Saver as an additional save option</$checkbox>
+<div class="tc-control-panel-hint">
+When enabled, Cloudflare saving will be available alongside your existing save methods
+</div>
+</div>
+
+<$list filter="[{$:/config/cloudflare-saver/enabled}match[no]]">
+<div class="cloudflare-warning">
+⚠️ Cloudflare Saver is currently disabled. Enable it above to use this save method.
+</div>
+</$list>
+
+!! Setup Guide
+
+<$details summary="📋 Complete Setup Instructions (Click to expand)">
+
+<div class="cloudflare-setup-guide">
+
+<<setup-step "1" "Create Cloudflare Pages Site" """
+1. Go to [Cloudflare Pages](https://pages.cloudflare.com/)
+2. Connect your GitHub account
+3. Create a new Pages project from your TiddlyWiki repository
+4. Deploy your site (e.g., `https://my-tiddlywiki.pages.dev`)
+""">>
+
+<<setup-step "2" "Create GitHub Personal Access Token" """
+1. Go to GitHub → Settings → Developer settings → [Personal access tokens](https://github.com/settings/tokens)
+2. Click "Generate new token (classic)"
+3. Set expiration and select scopes:
+   - ✅ `repo` (Full control of private repositories)
+   - ✅ `workflow` (Update GitHub Action workflows)
+4. Copy the token (save it securely - you won't see it again!)
+""">>
+
+<<setup-step "3" "Create Cloudflare Function" """
+Create a file at `functions/save.js` in your repository root.
+
+**Quick Setup**: Copy the complete function code from the `demo/functions/save.js` file in the plugin repository: https://github.com/BenSweaterVest/tiddlywiki-cloudflare-saver
+
+The function includes:
+* 🔐 Password authentication and rate limiting
+* ✅ Content validation and size limits
+* 🔄 Automatic retry logic for conflicts
+* 🛡️ Configurable CORS protection
+* 📝 Proper UTF-8 handling for all characters
+* ⚙️ Configurable file path and limits
+
+**Note**: The complete, production-ready code is ~280 lines. See the GitHub repository for the full implementation.
+""">>
+
+<<setup-step "4" "Set Environment Variables" """
+In Cloudflare Pages → Settings → Environment Variables → **Production**:
+
+!! Required Variables
+
+| Variable | Type | Example | Description |
+|----------|------|---------|-------------|
+| `GITHUB_TOKEN` | 🔐 Secret | `ghp_xxxxxxxxxxxx` | GitHub Personal Access Token |
+| `GITHUB_REPO` | 📝 Text | `username/repo-name` | Your GitHub repository |
+| `SAVE_PASSWORD` | 🔐 Secret | `your-secure-password` | Password for saving |
+
+!! Optional Variables
+
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `FILE_PATH` | 📝 Text | `index.html` | Path to your TiddlyWiki file |
+| `MAX_CONTENT_SIZE` | 📝 Text | `52428800` | Max file size in bytes (50MB default) |
+| `ALLOWED_ORIGINS` | 📝 Text | `*` | Comma-separated allowed origins for CORS |
+
+**Security Tips**:
+* Mark `GITHUB_TOKEN` and `SAVE_PASSWORD` as **encrypted/secret**
+* Set these for the **Production** environment, not Preview
+* For `ALLOWED_ORIGINS`, use your specific domain (e.g., `https://my-wiki.pages.dev`) instead of `*` for better security
+""">>
+
+
+<<setup-step "5" "Configure Plugin Settings" """
+Set your Cloudflare Function URL below in the **Connection Settings** section.
+
+Example: `https://my-tiddlywiki.pages.dev/functions/save`
+""">>
+
+</div>
+
+</$details>
+
+!! Connection Settings
+
+!!! Cloudflare Function URL
+
+<div class="tc-control-panel">
+<$edit-text tiddler=<<config-base>>"endpoint" default="" placeholder="https://your-site.pages.dev/functions/save" class="tc-edit-texteditor" size="50"/>
+<div class="tc-control-panel-hint">
+The full URL to your deployed Cloudflare Function (including https://)
+</div>
+</div>
+
+<$list filter="[{$:/config/cloudflare-saver/endpoint}!match[]]" emptyMessage="""
+<div class="cloudflare-warning">
+⚠️ Please enter your Cloudflare Function URL above
+</div>
+""">
+<div class="cloudflare-success">
+✅ Endpoint configured: {{$:/config/cloudflare-saver/endpoint}}
+</div>
+</$list>
+
+!!! Request Timeout (seconds)
+
+<div class="tc-control-panel">
+<$edit-text tiddler=<<config-base>>"timeout" default="30" class="tc-edit-texteditor" size="5"/>
+<div class="tc-control-panel-hint">
+How long to wait for save requests before timing out
+</div>
+</div>
+
+!! User Experience
+
+!!! Enable Save Notifications
+
+<div class="tc-control-panel">
+<$checkbox tiddler=<<config-base>>"notifications" field="text" checked="yes" unchecked="no" default="yes"> Show visual notifications during save process</$checkbox>
+</div>
+
+!!! Auto-retry Failed Saves
+
+<div class="tc-control-panel">
+<$checkbox tiddler=<<config-base>>"auto-retry" field="text" checked="yes" unchecked="no" default="yes"> Automatically retry failed saves (up to 3 attempts)</$checkbox>
+</div>
+
+!!! Remember Password (Session Only)
+
+<div class="tc-control-panel">
+<$checkbox tiddler=<<config-base>>"remember-password" field="text" checked="yes" unchecked="no" default="no"> Remember password until browser refresh</$checkbox>
+<div class="tc-control-panel-hint">
+⚠️ Only enable this on trusted devices. Password is cleared on page reload.
+</div>
+</div>
+
+!! Development & Debugging
+
+!!! Enable Debug Logging
+
+<div class="tc-control-panel">
+<$checkbox tiddler=<<config-base>>"debug" field="text" checked="yes" unchecked="no" default="no"> Log detailed information to browser console</$checkbox>
+</div>
+
+---
+
+!! Current Status
+
+<div class="cloudflare-test-area">
+
+|!Setting |!Value |!Status |
+|Enabled |{{$:/config/cloudflare-saver/enabled}} |<$list filter="[{$:/config/cloudflare-saver/enabled}match[yes]]" emptyMessage="❌">✅</$list> |
+|Endpoint URL |<$list filter="[{$:/config/cloudflare-saver/endpoint}!match[]]" emptyMessage="❌ Not configured">{{$:/config/cloudflare-saver/endpoint}}</$list> |✅ |
+|Timeout |{{$:/config/cloudflare-saver/timeout}} seconds |✅ |
+|Notifications |{{$:/config/cloudflare-saver/notifications}} |✅ |
+|Auto-retry |{{$:/config/cloudflare-saver/auto-retry}} |✅ |
+|Remember Password |{{$:/config/cloudflare-saver/remember-password}} |✅ |
+|Debug Mode |{{$:/config/cloudflare-saver/debug}} |✅ |
+
+!! Test Connection
+
+<$list filter="[{$:/config/cloudflare-saver/enabled}match[yes]] [{$:/config/cloudflare-saver/endpoint}!match[]] +[limit[1]]" emptyMessage="""
+<div class="cloudflare-warning">
+⚠️ Please enable the saver and configure the endpoint URL before testing
+</div>
+""">
+
+<$button class="tc-btn-big-green">
+{{$:/core/images/save-button}} Test Cloudflare Save
+<$action-sendmessage $message="tm-save-wiki" param="cloudflare"/>
+</$button>
+
+<div class="tc-control-panel-hint">
+This will attempt to save your wiki using the Cloudflare Function to test the connection.
+</div>
+
+</$list>
+
+</div>
+
+!! How to Use
+
+Once configured and enabled:
+
+1. **Multiple Save Options**: Your existing save methods (download, GitHub, etc.) continue to work
+2. **Access Cloudflare Saver**: Use the standard save button - if multiple savers are available, you may see options
+3. **Direct Save**: The save process will prompt for your password and save to GitHub via Cloudflare
+4. **Save Notifications**: Watch for success/failure notifications (if enabled)
+
+!! Troubleshooting
+
+<$details summary="🔧 Common Issues & Solutions">
+
+* **"Save failed" errors**: Enable debug mode and check browser console
+* **"Invalid password" errors**: Verify `SAVE_PASSWORD` environment variable in Cloudflare
+* **"Function not found" errors**: Ensure `functions/save.js` is deployed to Cloudflare Pages
+* **Timeout errors**: Increase timeout setting or check Cloudflare Function performance
+* **No save prompt**: Ensure saver is enabled and endpoint URL is configured
+
+</$details>
+
+</div>
+
+
+---
+
+title: $:/plugins/BenSweaterVest/cloudflare-saver/readme
+type: text/vnd.tiddlywiki
+
+! TiddlyWiki Cloudflare Saver Plugin
+
+!! Overview
+
+This plugin enables saving your TiddlyWiki directly to a GitHub repository via Cloudflare Functions with secure password authentication, working as an additional save option alongside your existing save methods.
+
+!! Key Features
+
+* 🔐 **Secure**: Password-protected saves with environment variable storage
+* ⚡ **Fast**: Serverless architecture via Cloudflare Functions
+* 🔄 **Reliable**: Built-in retry logic and comprehensive error handling
+* 📱 **Responsive**: Visual notifications for save status
+* 🛠️ **Configurable**: Comprehensive settings panel with debug mode
+* 🤝 **Compatible**: Works alongside existing TiddlyWiki save methods
+
+!! Quick Setup
+
+# Enable the plugin in Control Panel → Settings → Cloudflare Saver
+# Follow the complete setup guide (click "Complete Setup Instructions")
+# Configure your Cloudflare Function endpoint URL
+# Test the connection using the built-in test button
+
+!! How It Works
+
+This plugin adds Cloudflare saving as an additional option to your existing save methods. When enabled, you can save your TiddlyWiki through a Cloudflare Function that securely commits changes to your GitHub repository.
+
+!! Support
+
+For detailed setup instructions, troubleshooting, and support:
+https://github.com/BenSweaterVest/tiddlywiki-cloudflare-saver
+
+!! Version
+
+Version 1.0.0 - Initial release with full functionality and comprehensive documentation.
+
+
+
+---
+
+title: $:/plugins/BenSweaterVest/cloudflare-saver/notifications/failure
+type: text/vnd.tiddlywiki
+
+<div class="tc-notification-banner tc-notification-banner-error">
+<$button class="tc-btn-invisible tc-notification-btn" message="tm-close-tiddler">{{$:/core/images/close-button}}</$button>
+{{$:/core/images/warning}} Save failed. Check console for details.
+</div>
+
+
+---
+
+title: $:/plugins/BenSweaterVest/cloudflare-saver/notifications/saving
+type: text/vnd.tiddlywiki
+
+<div class="tc-notification-banner">
+<$button class="tc-btn-invisible tc-notification-btn" message="tm-close-tiddler">{{$:/core/images/close-button}}</$button>
+<span class="tc-notification-loading">{{$:/core/images/spiral}}</span> Saving to GitHub via Cloudflare...
+</div>
+
+
+---
+
+title: $:/plugins/BenSweaterVest/cloudflare-saver/notifications/success
+type: text/vnd.tiddlywiki
+
+<div class="tc-notification-banner tc-notification-banner-success">
+<$button class="tc-btn-invisible tc-notification-btn" message="tm-close-tiddler">{{$:/core/images/close-button}}</$button>
+{{$:/core/images/done-button}} Successfully saved to GitHub!
+</div>
+
