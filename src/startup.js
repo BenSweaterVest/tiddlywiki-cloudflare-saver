@@ -36,20 +36,8 @@ exports.startup = function() {
             }));
         }
     });
-    
-    // Add to SaverFilter if enabled
+
     var enabled = $tw.wiki.getTiddlerText("$:/config/cloudflare-saver/enabled", "no") === "yes";
-    if(enabled) {
-        var currentFilter = $tw.wiki.getTiddlerText("$:/config/SaverFilter", "");
-        if(currentFilter.indexOf("cloudflare") === -1) {
-            var newFilter = currentFilter ? currentFilter + " cloudflare" : "cloudflare";
-            $tw.wiki.addTiddler(new $tw.Tiddler({
-                title: "$:/config/SaverFilter",
-                text: newFilter.trim()
-            }));
-        }
-    }
-    
     console.log("[CloudflareSaver] Plugin loaded successfully" + (enabled ? " and enabled" : " (disabled)"));
 };
 
