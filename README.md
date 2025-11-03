@@ -33,10 +33,15 @@ You'll need to set up these components (detailed guide included in the plugin):
 ## Installation
 
 ### Method 1: Download Plugin File (Recommended)
-1. Download the plugin JSON from the [releases page](https://github.com/BenSweaterVest/tiddlywiki-cloudflare-saver/releases)
+
+**Option A: Download from Repository**
+1. Download the plugin JSON directly: [cloudflare-saver-plugin.json](https://raw.githubusercontent.com/BenSweaterVest/tiddlywiki-cloudflare-saver/main/dist/cloudflare-saver-plugin.json)
 2. Open TiddlyWiki → Control Panel → Plugins → Import
 3. Drag and drop the JSON file
 4. Click "Import" and save/reload your TiddlyWiki
+
+**Option B: From Releases** (Coming Soon)
+- Official releases will be published at: [Releases Page](https://github.com/BenSweaterVest/tiddlywiki-cloudflare-saver/releases)
 
 ### Method 2: Build from Source
 ```bash
