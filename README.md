@@ -32,32 +32,51 @@ You'll need to set up these components (detailed guide included in the plugin):
 
 ## Installation
 
-**Important**: TiddlyWiki plugins are typically distributed via demo pages where you drag the plugin link. We're working on setting up a demo page. In the meantime, use one of these methods:
+**Important**: This plugin requires a specific installation method for standalone TiddlyWiki. Follow these steps carefully:
 
-### Method 1: Import via .tid file (Recommended)
+### Method 1: Manual Import via Browser Console (Most Reliable)
 
-**Step 1: Download the .tid file**
-- Download: [cloudflare-saver-plugin.tid](https://raw.githubusercontent.com/BenSweaterVest/tiddlywiki-cloudflare-saver/main/dist/cloudflare-saver-plugin.tid)
-- Right-click → "Save Link As..."
+This method uses your browser's developer console to directly import the plugin:
 
-**Step 2: Import into TiddlyWiki**
+**Step 1: Download the plugin JSON**
+- Download: [cloudflare-saver-plugin.json](https://raw.githubusercontent.com/BenSweaterVest/tiddlywiki-cloudflare-saver/main/dist/cloudflare-saver-plugin.json)
+- Save it to your computer
+
+**Step 2: Open the JSON file**
+- Open the downloaded JSON file in a text editor
+- Copy the **entire contents** (Ctrl+A, Ctrl+C)
+
+**Step 3: Import into TiddlyWiki via Console**
 1. Open your TiddlyWiki in your browser
-2. **Drag and drop** the `.tid` file onto your TiddlyWiki page
-3. An import dialog should appear with all plugin components listed
-4. **Click "Import"** to import all tiddlers
-5. You should see a yellow banner: "Please save and reload to allow changes to JavaScript plugins to take effect"
-6. **Click the save button** (checkmark in sidebar)
-7. **Reload the page** (F5 or Ctrl+R)
+2. Press **F12** to open Developer Tools
+3. Go to the **Console** tab
+4. Type `var pluginData = ` and then **paste your copied JSON** after the `=` and press Enter
+   - Example: `var pluginData = {"tiddlers": {...}};`
+5. Copy and paste this code, then press Enter:
 
-**Step 3: Enable the saver**
-1. Go to **Control Panel** → **Settings** tab → **Cloudflare Saver**
-2. Check "Enable Cloudflare Saver as an additional save option"
-3. Save your TiddlyWiki
+```javascript
+Object.keys(pluginData.tiddlers).forEach(function(title) {
+    $tw.wiki.addTiddler(new $tw.Tiddler(
+        pluginData.tiddlers[title],
+        {title: title}
+    ));
+});
+console.log("✓ Imported " + Object.keys(pluginData.tiddlers).length + " tiddlers");
+```
+
+6. You should see: "✓ Imported 8 tiddlers" in the console
+7. **Save your TiddlyWiki** (click save button)
+8. **Reload the page** (F5)
+
+**Step 4: Enable the saver**
+1. Go to **Control Panel** → **Settings** tab
+2. Look for **"Cloudflare Saver"** tab
+3. Check: "Enable Cloudflare Saver as an additional save option"
+4. Save your TiddlyWiki
 
 **Verification**:
-- Control Panel → Plugins: You should see "BenSweaterVest/cloudflare-saver" listed
-- Control Panel → Settings: You should see a "Cloudflare Saver" tab
-- Control Panel → Saving: Once enabled, it will appear as an option
+- Control Panel → Plugins: "BenSweaterVest/cloudflare-saver" should appear
+- Control Panel → Settings: "Cloudflare Saver" tab should exist
 
 ### Method 2: For Node.js TiddlyWiki
 
