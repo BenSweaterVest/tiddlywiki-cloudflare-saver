@@ -34,26 +34,30 @@ You'll need to set up these components (detailed guide included in the plugin):
 
 **Important**: TiddlyWiki plugins are typically distributed via demo pages where you drag the plugin link. We're working on setting up a demo page. In the meantime, use one of these methods:
 
-### Method 1: Manual Plugin Installation (Recommended for now)
+### Method 1: Import via .tid file (Recommended)
 
-This method manually creates the plugin in your TiddlyWiki:
+**Step 1: Download the .tid file**
+- Download: [cloudflare-saver-plugin.tid](https://raw.githubusercontent.com/BenSweaterVest/tiddlywiki-cloudflare-saver/main/dist/cloudflare-saver-plugin.tid)
+- Right-click → "Save Link As..."
 
-1. **Download the plugin**: [cloudflare-saver-plugin.json](https://raw.githubusercontent.com/BenSweaterVest/tiddlywiki-cloudflare-saver/main/dist/cloudflare-saver-plugin.json)
+**Step 2: Import into TiddlyWiki**
+1. Open your TiddlyWiki in your browser
+2. **Drag and drop** the `.tid` file onto your TiddlyWiki page
+3. An import dialog should appear with all plugin components listed
+4. **Click "Import"** to import all tiddlers
+5. You should see a yellow banner: "Please save and reload to allow changes to JavaScript plugins to take effect"
+6. **Click the save button** (checkmark in sidebar)
+7. **Reload the page** (F5 or Ctrl+R)
 
-2. **Open the JSON file** in a text editor and copy its entire contents
+**Step 3: Enable the saver**
+1. Go to **Control Panel** → **Settings** tab → **Cloudflare Saver**
+2. Check "Enable Cloudflare Saver as an additional save option"
+3. Save your TiddlyWiki
 
-3. **In your TiddlyWiki**, create a new tiddler with these settings:
-   - **Title**: `$:/plugins/BenSweaterVest/cloudflare-saver`
-   - **Type**: `application/json`
-   - **Tags**: `$:/tags/Plugin`
-
-4. **Paste the entire JSON content** into the text area of this tiddler
-
-5. **Save** the tiddler (it should appear in your Control Panel → Plugins)
-
-6. **Save your TiddlyWiki** and **reload** the page
-
-**Verification**: Go to Control Panel → Plugins. You should see "BenSweaterVest/cloudflare-saver" listed.
+**Verification**:
+- Control Panel → Plugins: You should see "BenSweaterVest/cloudflare-saver" listed
+- Control Panel → Settings: You should see a "Cloudflare Saver" tab
+- Control Panel → Saving: Once enabled, it will appear as an option
 
 ### Method 2: For Node.js TiddlyWiki
 
