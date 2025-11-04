@@ -204,8 +204,8 @@ CloudflareSaver.prototype.info = {
 
 // Export module-level functions as required by TiddlyWiki
 exports.canSave = function(wiki) {
-    // Check if this saver is enabled
-    var enabled = wiki.getTiddlerText("$:/config/cloudflare-saver/enabled", "no") === "yes";
+    // Use $tw.wiki global instead of wiki parameter during initialization
+    var enabled = $tw.wiki.getTiddlerText("$:/config/cloudflare-saver/enabled", "no") === "yes";
     return enabled;
 };
 
