@@ -82,20 +82,24 @@ function build() {
         const pluginJsonPath = path.join(distDir, 'cloudflare-saver-plugin.json');
         fs.writeFileSync(pluginJsonPath, JSON.stringify(plugin, null, 2));
 
-        // Write plugin TID
-        const tidLines = [];
-        Object.entries(tiddlers).forEach(([title, tiddler]) => {
-            const fields = [];
-            Object.entries(tiddler).forEach(([key, value]) => {
-                if (key !== 'text') {
-                    fields.push(`${key}: ${value}`);
-                }
-            });
-            tidLines.push(fields.join('\n') + '\n\n' + tiddler.text);
-        });
-        
+        // Write plugin TID - proper TiddlyWiki plugin format
+        // This creates a single tiddler with metadata fields and JSON content
+        const tidFields = [
+            `author: ${pluginInfo.author}`,
+            `core-version: ${pluginInfo['core-version']}`,
+            `description: ${pluginInfo.description}`,
+            `list: ${pluginInfo.list}`,
+            `name: Cloudflare Saver`,
+            `plugin-type: ${pluginInfo['plugin-type']}`,
+            `source: ${pluginInfo.source}`,
+            `title: ${pluginInfo.title}`,
+            `type: application/json`,
+            `version: ${pluginInfo.version}`
+        ];
+
+        const pluginTidContent = tidFields.join('\n') + '\n\n' + JSON.stringify(plugin, null, 2);
         const pluginTidPath = path.join(distDir, 'cloudflare-saver-plugin.tid');
-        fs.writeFileSync(pluginTidPath, tidLines.join('\n\n---\n\n'));
+        fs.writeFileSync(pluginTidPath, pluginTidContent);
 
         console.log('✅ Build complete!');
         console.log(`   JSON: ${pluginJsonPath}`);
