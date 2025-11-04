@@ -85,12 +85,6 @@ CloudflareSaver.prototype.save = function(text, method, callback, options) {
     return true;
 };
 
-CloudflareSaver.prototype.canSave = function(wiki) {
-    // Check if this saver is enabled
-    var enabled = wiki.getTiddlerText("$:/config/cloudflare-saver/enabled", "no") === "yes";
-    return enabled;
-};
-
 CloudflareSaver.prototype._performSave = function(text, password, callback, config, retryCount) {
     var self = this;
     var maxRetries = config.autoRetry ? 3 : 0;
@@ -208,7 +202,16 @@ CloudflareSaver.prototype.info = {
     capabilities: ["save", "autosave"]
 };
 
-exports.CloudflareSaver = CloudflareSaver;
+// Export module-level functions as required by TiddlyWiki
+exports.canSave = function(wiki) {
+    // Check if this saver is enabled
+    var enabled = wiki.getTiddlerText("$:/config/cloudflare-saver/enabled", "no") === "yes";
+    return enabled;
+};
+
+exports.create = function(wiki) {
+    return new CloudflareSaver(wiki);
+};
 
 })();
 
