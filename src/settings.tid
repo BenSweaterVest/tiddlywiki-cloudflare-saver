@@ -100,7 +100,7 @@ $content$
 !! Quick Enable/Disable
 
 <div class="tc-control-panel">
-<$checkbox tiddler=<<config-base>>"enabled" field="text" checked="yes" unchecked="no" default="no"> Enable Cloudflare Saver as an additional save option</$checkbox>
+<$checkbox tiddler="$:/config/cloudflare-saver/enabled" field="text" checked="yes" unchecked="no" default="no"> Enable Cloudflare Saver as an additional save option</$checkbox>
 <div class="tc-control-panel-hint">
 When enabled, Cloudflare saving will be available alongside your existing save methods
 </div>
@@ -114,7 +114,16 @@ When enabled, Cloudflare saving will be available alongside your existing save m
 
 !! Setup Guide
 
-<$details summary="📋 Complete Setup Instructions (Click to expand)">
+<$reveal state="$:/state/cloudflare-saver/setup-expanded" type="nomatch" text="yes">
+<$button set="$:/state/cloudflare-saver/setup-expanded" setTo="yes" class="tc-btn-invisible tc-tiddlylink">
+📋 Complete Setup Instructions (Click to expand)
+</$button>
+</$reveal>
+
+<$reveal state="$:/state/cloudflare-saver/setup-expanded" type="match" text="yes">
+<$button set="$:/state/cloudflare-saver/setup-expanded" setTo="no" class="tc-btn-invisible tc-tiddlylink">
+📋 Complete Setup Instructions (Click to collapse)
+</$button>
 
 <div class="cloudflare-setup-guide">
 
@@ -183,14 +192,14 @@ Example: `https://my-tiddlywiki.pages.dev/functions/save`
 
 </div>
 
-</$details>
+</$reveal>
 
 !! Connection Settings
 
 !!! Cloudflare Function URL
 
 <div class="tc-control-panel">
-<$edit-text tiddler=<<config-base>>"endpoint" default="" placeholder="https://your-site.pages.dev/functions/save" class="tc-edit-texteditor" size="50"/>
+<$edit-text tiddler="$:/config/cloudflare-saver/endpoint" default="" placeholder="https://your-site.pages.dev/functions/save" class="tc-edit-texteditor" size="50"/>
 <div class="tc-control-panel-hint">
 The full URL to your deployed Cloudflare Function (including https://)
 </div>
@@ -209,7 +218,7 @@ The full URL to your deployed Cloudflare Function (including https://)
 !!! Request Timeout (seconds)
 
 <div class="tc-control-panel">
-<$edit-text tiddler=<<config-base>>"timeout" default="30" class="tc-edit-texteditor" size="5"/>
+<$edit-text tiddler="$:/config/cloudflare-saver/timeout" default="30" class="tc-edit-texteditor" size="5"/>
 <div class="tc-control-panel-hint">
 How long to wait for save requests before timing out
 </div>
@@ -220,19 +229,19 @@ How long to wait for save requests before timing out
 !!! Enable Save Notifications
 
 <div class="tc-control-panel">
-<$checkbox tiddler=<<config-base>>"notifications" field="text" checked="yes" unchecked="no" default="yes"> Show visual notifications during save process</$checkbox>
+<$checkbox tiddler="$:/config/cloudflare-saver/notifications" field="text" checked="yes" unchecked="no" default="yes"> Show visual notifications during save process</$checkbox>
 </div>
 
 !!! Auto-retry Failed Saves
 
 <div class="tc-control-panel">
-<$checkbox tiddler=<<config-base>>"auto-retry" field="text" checked="yes" unchecked="no" default="yes"> Automatically retry failed saves (up to 3 attempts)</$checkbox>
+<$checkbox tiddler="$:/config/cloudflare-saver/auto-retry" field="text" checked="yes" unchecked="no" default="yes"> Automatically retry failed saves (up to 3 attempts)</$checkbox>
 </div>
 
 !!! Remember Password (Session Only)
 
 <div class="tc-control-panel">
-<$checkbox tiddler=<<config-base>>"remember-password" field="text" checked="yes" unchecked="no" default="no"> Remember password until browser refresh</$checkbox>
+<$checkbox tiddler="$:/config/cloudflare-saver/remember-password" field="text" checked="yes" unchecked="no" default="no"> Remember password until browser refresh</$checkbox>
 <div class="tc-control-panel-hint">
 ⚠️ Only enable this on trusted devices. Password is cleared on page reload.
 </div>
@@ -243,7 +252,7 @@ How long to wait for save requests before timing out
 !!! Enable Debug Logging
 
 <div class="tc-control-panel">
-<$checkbox tiddler=<<config-base>>"debug" field="text" checked="yes" unchecked="no" default="no"> Log detailed information to browser console</$checkbox>
+<$checkbox tiddler="$:/config/cloudflare-saver/debug" field="text" checked="yes" unchecked="no" default="no"> Log detailed information to browser console</$checkbox>
 </div>
 
 ---
@@ -293,7 +302,16 @@ Once configured and enabled:
 
 !! Troubleshooting
 
-<$details summary="🔧 Common Issues & Solutions">
+<$reveal state="$:/state/cloudflare-saver/troubleshooting-expanded" type="nomatch" text="yes">
+<$button set="$:/state/cloudflare-saver/troubleshooting-expanded" setTo="yes" class="tc-btn-invisible tc-tiddlylink">
+🔧 Common Issues & Solutions (Click to expand)
+</$button>
+</$reveal>
+
+<$reveal state="$:/state/cloudflare-saver/troubleshooting-expanded" type="match" text="yes">
+<$button set="$:/state/cloudflare-saver/troubleshooting-expanded" setTo="no" class="tc-btn-invisible tc-tiddlylink">
+🔧 Common Issues & Solutions (Click to collapse)
+</$button>
 
 * **"Save failed" errors**: Enable debug mode and check browser console
 * **"Invalid password" errors**: Verify `SAVE_PASSWORD` environment variable in Cloudflare
@@ -301,6 +319,6 @@ Once configured and enabled:
 * **Timeout errors**: Increase timeout setting or check Cloudflare Function performance
 * **No save prompt**: Ensure saver is enabled and endpoint URL is configured
 
-</$details>
+</$reveal>
 
 </div>
