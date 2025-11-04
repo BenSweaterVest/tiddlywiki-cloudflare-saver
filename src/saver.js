@@ -43,7 +43,7 @@ CloudflareSaver.prototype.save = function(text, method, callback, options) {
     if(method !== "save") {
         return false;
     }
-    
+
     var config = {
         endpoint: self.wiki.getTiddlerText("$:/config/cloudflare-saver/endpoint", ""),
         timeout: parseInt(self.wiki.getTiddlerText("$:/config/cloudflare-saver/timeout", "30")) * 1000,
@@ -52,17 +52,17 @@ CloudflareSaver.prototype.save = function(text, method, callback, options) {
         rememberPassword: self.wiki.getTiddlerText("$:/config/cloudflare-saver/remember-password", "no") === "yes",
         debug: self.wiki.getTiddlerText("$:/config/cloudflare-saver/debug", "no") === "yes"
     };
-    
+
     // Validate configuration
     if(!config.endpoint || config.endpoint.trim() === "") {
         callback("Cloudflare saver not configured. Please set endpoint URL in settings.");
         return false;
     }
-    
+
     if(config.debug) {
         console.log("[CloudflareSaver] Starting save process");
     }
-    
+
     var password = null;
     if(config.rememberPassword && self.sessionPassword) {
         password = self.sessionPassword;
@@ -83,6 +83,12 @@ CloudflareSaver.prototype.save = function(text, method, callback, options) {
 
     self._performSave(text, password, callback, config, 0);
     return true;
+};
+
+CloudflareSaver.prototype.canSave = function(wiki) {
+    // Check if this saver is enabled
+    var enabled = wiki.getTiddlerText("$:/config/cloudflare-saver/enabled", "no") === "yes";
+    return enabled;
 };
 
 CloudflareSaver.prototype._performSave = function(text, password, callback, config, retryCount) {
