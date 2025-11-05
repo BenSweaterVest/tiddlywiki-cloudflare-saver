@@ -100,7 +100,7 @@ $content$
 !! Quick Enable/Disable
 
 <div class="tc-control-panel">
-<$checkbox tiddler=<<config-base>>"enabled" field="text" checked="yes" unchecked="no" default="no"> Enable Cloudflare Saver as an additional save option</$checkbox>
+<$checkbox tiddler={{{ [<config-base>addsuffix[enabled]] }}} field="text" checked="yes" unchecked="no" default="no"> Enable Cloudflare Saver as an additional save option</$checkbox>
 <div class="tc-control-panel-hint">
 When enabled, Cloudflare saving will be available alongside your existing save methods
 </div>
@@ -190,7 +190,7 @@ Example: `https://my-tiddlywiki.pages.dev/functions/save`
 !!! Cloudflare Function URL
 
 <div class="tc-control-panel">
-<$edit-text tiddler=<<config-base>>"endpoint" default="" placeholder="https://your-site.pages.dev/functions/save" class="tc-edit-texteditor" size="50"/>
+<$edit-text tiddler={{{ [<config-base>addsuffix[endpoint]] }}} default="" placeholder="https://your-site.pages.dev/functions/save" class="tc-edit-texteditor" size="50"/>
 <div class="tc-control-panel-hint">
 The full URL to your deployed Cloudflare Function (including https://)
 </div>
@@ -209,7 +209,7 @@ The full URL to your deployed Cloudflare Function (including https://)
 !!! Request Timeout (seconds)
 
 <div class="tc-control-panel">
-<$edit-text tiddler=<<config-base>>"timeout" default="30" class="tc-edit-texteditor" size="5"/>
+<$edit-text tiddler={{{ [<config-base>addsuffix[timeout]] }}} default="30" class="tc-edit-texteditor" size="5"/>
 <div class="tc-control-panel-hint">
 How long to wait for save requests before timing out
 </div>
@@ -220,19 +220,19 @@ How long to wait for save requests before timing out
 !!! Enable Save Notifications
 
 <div class="tc-control-panel">
-<$checkbox tiddler=<<config-base>>"notifications" field="text" checked="yes" unchecked="no" default="yes"> Show visual notifications during save process</$checkbox>
+<$checkbox tiddler={{{ [<config-base>addsuffix[notifications]] }}} field="text" checked="yes" unchecked="no" default="yes"> Show visual notifications during save process</$checkbox>
 </div>
 
 !!! Auto-retry Failed Saves
 
 <div class="tc-control-panel">
-<$checkbox tiddler=<<config-base>>"auto-retry" field="text" checked="yes" unchecked="no" default="yes"> Automatically retry failed saves (up to 3 attempts)</$checkbox>
+<$checkbox tiddler={{{ [<config-base>addsuffix[auto-retry]] }}} field="text" checked="yes" unchecked="no" default="yes"> Automatically retry failed saves (up to 3 attempts)</$checkbox>
 </div>
 
 !!! Remember Password (Session Only)
 
 <div class="tc-control-panel">
-<$checkbox tiddler=<<config-base>>"remember-password" field="text" checked="yes" unchecked="no" default="no"> Remember password until browser refresh</$checkbox>
+<$checkbox tiddler={{{ [<config-base>addsuffix[remember-password]] }}} field="text" checked="yes" unchecked="no" default="no"> Remember password until browser refresh</$checkbox>
 <div class="tc-control-panel-hint">
 ⚠️ Only enable this on trusted devices. Password is cleared on page reload.
 </div>
@@ -243,7 +243,7 @@ How long to wait for save requests before timing out
 !!! Enable Debug Logging
 
 <div class="tc-control-panel">
-<$checkbox tiddler=<<config-base>>"debug" field="text" checked="yes" unchecked="no" default="no"> Log detailed information to browser console</$checkbox>
+<$checkbox tiddler={{{ [<config-base>addsuffix[debug]] }}} field="text" checked="yes" unchecked="no" default="no"> Log detailed information to browser console</$checkbox>
 </div>
 
 ---
