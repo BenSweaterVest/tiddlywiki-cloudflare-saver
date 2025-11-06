@@ -46,7 +46,7 @@ CloudflareSaver.prototype.save = function(text, method, callback, options) {
 
     var config = {
         endpoint: self.wiki.getTiddlerText("$:/config/cloudflare-saver/endpoint", ""),
-        timeout: parseInt(self.wiki.getTiddlerText("$:/config/cloudflare-saver/timeout", "30")) * 1000,
+        timeout: Math.max(5, parseInt(self.wiki.getTiddlerText("$:/config/cloudflare-saver/timeout", "30")) || 30) * 1000,
         notifications: self.wiki.getTiddlerText("$:/config/cloudflare-saver/notifications", "yes") === "yes",
         autoRetry: self.wiki.getTiddlerText("$:/config/cloudflare-saver/auto-retry", "yes") === "yes",
         rememberPassword: self.wiki.getTiddlerText("$:/config/cloudflare-saver/remember-password", "no") === "yes",
@@ -77,7 +77,7 @@ CloudflareSaver.prototype.save = function(text, method, callback, options) {
         }
     }
 
-    if(config.notifications && $tw.notifier) {
+    if(config.notifications && typeof $tw !== 'undefined' && $tw.notifier) {
         $tw.notifier.display("$:/plugins/BenSweaterVest/cloudflare-saver/notifications/saving");
     }
 
@@ -100,7 +100,7 @@ CloudflareSaver.prototype._performSave = function(text, password, callback, conf
                 console.log("[CloudflareSaver] Save successful");
             }
             callback(null);
-            if(config.notifications && $tw.notifier) {
+            if(config.notifications && typeof $tw !== 'undefined' && $tw.notifier) {
                 $tw.notifier.display("$:/plugins/BenSweaterVest/cloudflare-saver/notifications/success");
             }
         } else {
@@ -190,7 +190,7 @@ CloudflareSaver.prototype._handleSaveError = function(xhr, password, text, callb
         }, retryDelay);
     } else {
         callback(errorMsg);
-        if(config.notifications && $tw.notifier) {
+        if(config.notifications && typeof $tw !== 'undefined' && $tw.notifier) {
             $tw.notifier.display("$:/plugins/BenSweaterVest/cloudflare-saver/notifications/failure");
         }
     }
@@ -198,7 +198,7 @@ CloudflareSaver.prototype._handleSaveError = function(xhr, password, text, callb
 
 CloudflareSaver.prototype.info = {
     name: "cloudflare",
-    priority: 1000, // Lower priority so it doesn't override other savers
+    priority: 1000, // Medium priority (same as TiddlyFox) - works as additional option
     capabilities: ["save", "autosave"]
 };
 

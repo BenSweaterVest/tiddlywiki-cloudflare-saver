@@ -35,10 +35,10 @@ function build() {
 
         // Source files to process
         const files = [
-            { file: 'saver.js', type: 'application/javascript', 'module-type': 'saver' },
-            { file: 'startup.js', type: 'application/javascript', 'module-type': 'startup' },
-            { file: 'settings.tid', type: 'text/vnd.tiddlywiki', tags: '$:/tags/ControlPanel/SettingsTab', caption: 'Cloudflare Saver' },
-            { file: 'readme.tid', type: 'text/vnd.tiddlywiki' }
+            { file: 'saver.js', type: 'application/javascript', 'module-type': 'saver', required: true },
+            { file: 'startup.js', type: 'application/javascript', 'module-type': 'startup', required: true },
+            { file: 'settings.tid', type: 'text/vnd.tiddlywiki', tags: '$:/tags/ControlPanel/SettingsTab', caption: 'Cloudflare Saver', required: true },
+            { file: 'readme.tid', type: 'text/vnd.tiddlywiki', required: true }
         ];
 
         // Add notifications
@@ -56,26 +56,36 @@ function build() {
         }
 
         // Process files
-        files.forEach(({ file, type, ...fields }) => {
+        let missingRequired = [];
+        files.forEach(({ file, type, required, ...fields }) => {
             const filePath = path.join(srcDir, file);
-            
+
             if (fs.existsSync(filePath)) {
                 const content = fs.readFileSync(filePath, 'utf8');
-                const name = file.replace(/\.(js|tid)$/, '');
+                // Preserve .js extension for JavaScript files, remove .tid for tiddler files
+                const name = file.endsWith('.tid') ? file.replace(/\.tid$/, '') : file;
                 const title = `$:/plugins/${namespace}/${name}`;
-                
+
                 tiddlers[title] = {
                     title,
                     type,
                     text: content,
                     ...fields
                 };
-                
+
                 console.log(`✓ Added ${title}`);
             } else {
+                if (required) {
+                    missingRequired.push(file);
+                }
                 console.warn(`⚠️  File not found: ${file}`);
             }
         });
+
+        // Fail build if required files are missing
+        if (missingRequired.length > 0) {
+            throw new Error(`Required files missing: ${missingRequired.join(', ')}`);
+        }
 
         // Write plugin JSON
         const plugin = { tiddlers };

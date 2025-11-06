@@ -157,8 +157,14 @@ export async function onRequestPost(context) {
 
         // Prepare content for GitHub (proper base64 encode with UTF-8 handling)
         // Using TextEncoder for proper UTF-8 encoding, then converting to base64
+        // Process in chunks to avoid "Maximum call stack size exceeded" for large files
         const utf8Bytes = new TextEncoder().encode(content);
-        const binaryString = String.fromCharCode(...utf8Bytes);
+        let binaryString = '';
+        const chunkSize = 0x8000; // 32KB chunks to avoid stack overflow
+        for (let i = 0; i < utf8Bytes.length; i += chunkSize) {
+          const chunk = utf8Bytes.subarray(i, Math.min(i + chunkSize, utf8Bytes.length));
+          binaryString += String.fromCharCode.apply(null, chunk);
+        }
         const encodedContent = btoa(binaryString);
 
         // Prepare commit data

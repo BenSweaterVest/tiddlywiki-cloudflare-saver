@@ -5,7 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0] - 2025-01-XX
+## [1.0.0] - 2025-01-06
+
+### Fixed
+- **Critical:** Fixed timeout configuration validation - now handles non-numeric input gracefully (defaults to 30s, minimum 5s)
+- **Critical:** Fixed base64 encoding for large files - chunked processing prevents "Maximum call stack size exceeded" errors on wikis >1MB
+- Fixed tiddler title mismatch - JavaScript modules now correctly include .js extension in titles
+- Fixed build script to fail on missing required files instead of silently continuing
+- Corrected priority comment - clarified that 1000 is medium priority, not "lower"
+- Added defensive checks for `$tw` global before accessing `$tw.notifier` to prevent potential ReferenceErrors
 
 ### Added
 - Initial release of TiddlyWiki Cloudflare Saver plugin
