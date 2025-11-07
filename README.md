@@ -83,27 +83,48 @@ Your repository should now have both `index.html` and `functions/save.js`.
 
 ### Step 2: Create GitHub Personal Access Token
 
-The Cloudflare Function needs permission to commit to your repository.
+The Cloudflare Function needs permission to commit to your repository. We recommend using **fine-grained tokens** for better security.
 
-1. **Generate a Personal Access Token**:
+#### Option A: Fine-grained Personal Access Token (Recommended)
+
+This is more secure because it limits access to only your TiddlyWiki repository.
+
+1. **Generate a fine-grained token**:
+   - Go to GitHub → Settings → Developer settings → [Personal access tokens → Fine-grained tokens](https://github.com/settings/tokens?type=beta)
+   - Click "Generate new token"
+   - Name: `TiddlyWiki Cloudflare Saver`
+   - Expiration: Choose your preferred duration (90 days, 1 year, or custom)
+
+2. **Configure repository access**:
+   - Repository access: **Only select repositories**
+   - Select your TiddlyWiki repository from the dropdown
+
+3. **Set permissions**:
+   - Under "Repository permissions":
+     - **Contents**: Read and write ✅
+     - **Metadata**: Read-only ✅ (automatically selected)
+   - All other permissions can remain as "No access"
+
+4. **Generate token**:
+   - Click "Generate token"
+   - **⚠️ IMPORTANT**: Copy the token immediately (starts with `github_pat_`). You won't be able to see it again!
+
+5. **Keep the token safe** - you'll use it in Step 4 (Environment Variables)
+
+#### Option B: Classic Personal Access Token (Alternative)
+
+If you prefer the classic token type (gives access to all your repositories):
+
+1. **Generate a classic token**:
    - Go to GitHub → Settings → Developer settings → [Personal access tokens → Tokens (classic)](https://github.com/settings/tokens)
    - Click "Generate new token (classic)"
-   - Name it: `TiddlyWiki Cloudflare Saver`
-   - Expiration: Choose your preferred duration (90 days, 1 year, or no expiration)
-   - Select scopes:
-     - ✅ **`repo`** (Full control of private repositories) - this is all you need
+   - Name: `TiddlyWiki Cloudflare Saver`
+   - Expiration: Choose your preferred duration
+   - Select scope: ✅ **`repo`** (Full control of private repositories)
    - Click "Generate token"
-   - **⚠️ IMPORTANT**: Copy the token immediately (starts with `ghp_`). You won't be able to see it again!
+   - **⚠️ IMPORTANT**: Copy the token (starts with `ghp_`)
 
-2. **Keep the token safe** - you'll use it in Step 4 (Environment Variables)
-
-**Alternative: Fine-grained Personal Access Token** (more secure):
-   - Use "Fine-grained tokens" instead
-   - Repository access: Select your TiddlyWiki repository
-   - Permissions needed:
-     - Contents: Read and write
-     - Metadata: Read-only
-   - This limits access to only your wiki repository
+**⚠️ Note**: Classic tokens have access to ALL your repositories. Fine-grained tokens are more secure.
 
 ### Step 3: Set Up Cloudflare Pages
 
@@ -154,7 +175,7 @@ The Cloudflare Function needs these secrets to work.
 
    | Variable Name | Type | Value | Example |
    |---------------|------|-------|---------|
-   | `GITHUB_TOKEN` | 🔐 **Secret** | Your GitHub token from Step 2 | `ghp_xxxxxxxxxxxx` |
+   | `GITHUB_TOKEN` | 🔐 **Secret** | Your GitHub token from Step 2 | `github_pat_...` (fine-grained) or `ghp_...` (classic) |
    | `GITHUB_REPO` | Text | Your repo in `username/repo-name` format | `myusername/my-tiddlywiki` |
    | `SAVE_PASSWORD` | 🔐 **Secret** | Create a strong password for saves | `MySecurePassword123!` |
 
@@ -435,7 +456,9 @@ Note: GitHub has a 100MB file size limit.
 **Solutions**:
 1. Verify `GITHUB_TOKEN`:
    - Check it hasn't expired
-   - Check it has `repo` scope
+   - For **fine-grained tokens**: Check it has "Contents: Read and write" permission for your repository
+   - For **classic tokens**: Check it has `repo` scope
+   - Verify the token has access to the correct repository
    - Try regenerating the token
 2. Verify `GITHUB_REPO` format:
    - Should be: `username/repo-name`
@@ -444,6 +467,7 @@ Note: GitHub has a 100MB file size limit.
    ```bash
    curl -H "Authorization: Bearer YOUR_TOKEN" https://api.github.com/user
    ```
+   Should return your user info if token is valid
 
 ### "Rate Limit Exceeded" (429 Error)
 
@@ -521,8 +545,11 @@ For detailed troubleshooting:
 ### Token Security
 - **Environment variables**: `GITHUB_TOKEN` and `SAVE_PASSWORD` stored as encrypted Cloudflare secrets
 - **Not in code**: Never exposed in browser or repository code
-- **Minimum permissions**: GitHub token only needs `repo` scope
-- **Rotation**: Rotate tokens periodically
+- **Fine-grained tokens recommended**: Limit access to only your TiddlyWiki repository
+  - Required permissions: Contents (read/write), Metadata (read)
+  - Classic tokens give access to ALL repositories - use fine-grained for better security
+- **Token expiration**: Set expiration dates and rotate tokens periodically
+- **Minimum permissions**: Only grant what's needed (Contents: read/write)
 
 ### Network Security
 - **HTTPS only**: All communication encrypted
@@ -532,8 +559,8 @@ For detailed troubleshooting:
 
 ### GitHub Security
 - **Private repos**: Use private repositories for sensitive wikis
-- **Token expiration**: Use tokens with expiration dates
-- **Fine-grained tokens**: Limit access to single repository
+- **Repository-scoped access**: Fine-grained tokens restrict access to specific repositories
+- **Audit trail**: Every save creates a Git commit with full history
 
 ## Multiple Savers Support
 
