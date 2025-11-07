@@ -39,25 +39,25 @@ CloudflareSaver.prototype.save = function(text, method, callback, options) {
         return false; // Let other savers handle it
     }
 
-    // Only handle saves when explicitly selected
-    if(method !== "save") {
+    // Validate configuration before claiming to handle the save
+    var endpoint = self.wiki.getTiddlerText("$:/config/cloudflare-saver/endpoint", "");
+    if(!endpoint || endpoint.trim() === "") {
+        return false; // Let other savers handle it if not configured
+    }
+
+    // We can handle save and autosave methods
+    if(method !== "save" && method !== "autosave") {
         return false;
     }
 
     var config = {
-        endpoint: self.wiki.getTiddlerText("$:/config/cloudflare-saver/endpoint", ""),
+        endpoint: endpoint,
         timeout: Math.max(5, parseInt(self.wiki.getTiddlerText("$:/config/cloudflare-saver/timeout", "30")) || 30) * 1000,
         notifications: self.wiki.getTiddlerText("$:/config/cloudflare-saver/notifications", "yes") === "yes",
         autoRetry: self.wiki.getTiddlerText("$:/config/cloudflare-saver/auto-retry", "yes") === "yes",
         rememberPassword: self.wiki.getTiddlerText("$:/config/cloudflare-saver/remember-password", "no") === "yes",
         debug: self.wiki.getTiddlerText("$:/config/cloudflare-saver/debug", "no") === "yes"
     };
-
-    // Validate configuration
-    if(!config.endpoint || config.endpoint.trim() === "") {
-        callback("Cloudflare saver not configured. Please set endpoint URL in settings.");
-        return false;
-    }
 
     if(config.debug) {
         console.log("[CloudflareSaver] Starting save process");
@@ -198,7 +198,7 @@ CloudflareSaver.prototype._handleSaveError = function(xhr, password, text, callb
 
 CloudflareSaver.prototype.info = {
     name: "cloudflare",
-    priority: 1000, // Medium priority (same as TiddlyFox) - works as additional option
+    priority: 2000, // High priority - when enabled, prefer this over download saver
     capabilities: ["save", "autosave"]
 };
 
@@ -206,7 +206,9 @@ CloudflareSaver.prototype.info = {
 exports.canSave = function(wiki) {
     // Use $tw.wiki global instead of wiki parameter during initialization
     var enabled = $tw.wiki.getTiddlerText("$:/config/cloudflare-saver/enabled", "no") === "yes";
-    return enabled;
+    var endpoint = $tw.wiki.getTiddlerText("$:/config/cloudflare-saver/endpoint", "");
+    // Only claim we can save if both enabled AND endpoint is configured
+    return enabled && endpoint && endpoint.trim() !== "";
 };
 
 exports.create = function(wiki) {

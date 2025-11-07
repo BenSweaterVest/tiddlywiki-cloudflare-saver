@@ -37,7 +37,7 @@ function build() {
         const files = [
             { file: 'saver.js', type: 'application/javascript', 'module-type': 'saver', required: true },
             { file: 'startup.js', type: 'application/javascript', 'module-type': 'startup', required: true },
-            { file: 'settings.tid', type: 'text/vnd.tiddlywiki', tags: '$:/tags/ControlPanel/Saving', required: true },
+            { file: 'settings.tid', type: 'text/vnd.tiddlywiki', required: true },
             { file: 'readme.tid', type: 'text/vnd.tiddlywiki', required: true }
         ];
 
@@ -66,12 +66,42 @@ function build() {
                 const name = file.endsWith('.tid') ? file.replace(/\.tid$/, '') : file;
                 const title = `$:/plugins/${namespace}/${name}`;
 
-                tiddlers[title] = {
+                let tiddlerFields = {
                     title,
                     type,
-                    text: content,
                     ...fields
                 };
+
+                // Parse .tid file format (metadata headers separated from content by blank line)
+                if (file.endsWith('.tid')) {
+                    // Find the first blank line (two consecutive newlines)
+                    const match = content.match(/^((?:.*\r?\n)*?)\r?\n([\s\S]*)$/);
+                    if (match && match[1]) {
+                        // Parse metadata headers
+                        const headers = match[1];
+                        const body = match[2] || '';
+
+                        headers.split(/\r?\n/).forEach(line => {
+                            const fieldMatch = line.match(/^([^:]+):\s*(.*)$/);
+                            if (fieldMatch) {
+                                const fieldName = fieldMatch[1].trim();
+                                const fieldValue = fieldMatch[2].trim();
+                                // Don't override type if already set
+                                if (fieldName !== 'type' || !tiddlerFields.type) {
+                                    tiddlerFields[fieldName] = fieldValue;
+                                }
+                            }
+                        });
+
+                        tiddlerFields.text = body;
+                    } else {
+                        tiddlerFields.text = content;
+                    }
+                } else {
+                    tiddlerFields.text = content;
+                }
+
+                tiddlers[title] = tiddlerFields;
 
                 console.log(`✓ Added ${title}`);
             } else {
