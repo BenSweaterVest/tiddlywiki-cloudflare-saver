@@ -14,12 +14,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed custom CSS styling in favor of standard TiddlyWiki control panel styles
 
 ### Fixed
+- **Critical:** Fixed saver not being invoked - increased priority to 2000 and added endpoint validation to `canSave()` so saver is properly triggered when enabled and configured
 - **Critical:** Fixed timeout configuration validation - now handles non-numeric input gracefully (defaults to 30s, minimum 5s)
 - **Critical:** Fixed base64 encoding for large files - chunked processing prevents "Maximum call stack size exceeded" errors on wikis >1MB
+- Fixed display name in Saving tab - added caption field so it shows "CloudFlare Saver" instead of full tiddler path
+- Fixed textbox styling - removed excessive size attribute to match GitHub/GitLab saver appearance
+- Fixed build script .tid file parsing - now correctly extracts caption and tags from file headers
 - Fixed tiddler title mismatch - JavaScript modules now correctly include .js extension in titles
 - Fixed build script to fail on missing required files instead of silently continuing
-- Corrected priority comment - clarified that 1000 is medium priority, not "lower"
+- Corrected priority comment - now accurately states high priority (2000) to ensure proper invocation
 - Added defensive checks for `$tw` global before accessing `$tw.notifier` to prevent potential ReferenceErrors
+- Support for both "save" and "autosave" methods (was only handling "save")
 
 ### Added
 - Initial release of TiddlyWiki Cloudflare Saver plugin
