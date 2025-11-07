@@ -54,11 +54,10 @@ This is the standard TiddlyWiki plugin installation method:
 3. You should see **"Cloudflare Saver"** listed with version 1.0.0
 
 **Step 4: Configure the plugin**
-1. In Control Panel, find the **"Cloudflare Saver"** tab (same level as Info, Appearance, Settings, Saving, Plugins, etc.)
-2. Check: "Enable Cloudflare Saver as an additional save option"
-3. Follow the setup guide in that tab to configure your Cloudflare endpoint
-
-**Note**: The Cloudflare Saver settings are in a **separate tab** in the Control Panel, not under Settings → Saving. Look for "Cloudflare Saver" at the top level.
+1. In Control Panel, go to the **Saving** tab
+2. Scroll down to the **"CloudFlare Saver"** section
+3. Check: "Enable saving to Cloudflare Functions"
+4. Follow the setup guide to configure your Cloudflare endpoint
 
 ### Method 2: For Node.js TiddlyWiki
 
@@ -125,13 +124,12 @@ If you don't see it:
 
 After installation:
 
-1. **Go to Plugin Settings**: Control Panel → **Cloudflare Saver** tab (at the top level, alongside Info, Appearance, Settings, Saving, Plugins tabs)
-2. **Follow Setup Guide**: Click "Complete Setup Instructions" for step-by-step guidance on setting up Cloudflare Pages and GitHub
-3. **Enable the Saver**: Check "Enable Cloudflare Saver as an additional save option"
-4. **Configure Endpoint**: Enter your Cloudflare Function URL (e.g., `https://my-wiki.pages.dev/functions/save`)
-5. **Test Connection**: Use the "Test Cloudflare Save" button to verify everything works
-
-**Important**: The Cloudflare Saver settings are in a **separate "Cloudflare Saver" tab** in the Control Panel, not under the "Saving" tab. Look for it at the top level alongside other tabs.
+1. **Go to Saving Settings**: Control Panel → **Saving** tab
+2. **Find CloudFlare Saver**: Scroll down to the "CloudFlare Saver" section (appears alongside other savers like GitHub, GitLab, etc.)
+3. **Enable the Saver**: Check "Enable saving to Cloudflare Functions"
+4. **Follow Setup Guide**: Expand "Click to expand setup guide" for step-by-step instructions on setting up Cloudflare Pages and GitHub
+5. **Configure Endpoint**: Enter your Cloudflare Function URL (e.g., `https://my-wiki.pages.dev/functions/save`)
+6. **Test Connection**: Use the "Test Cloudflare Save" button to verify everything works
 
 ## Usage
 

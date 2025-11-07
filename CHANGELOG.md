@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.0] - 2025-01-06
 
+### Changed
+- **UI Improvement:** Moved settings from separate Control Panel tab to Saving section alongside other savers (GitHub, GitLab, etc.)
+- Simplified settings UI to match TiddlyWiki saver conventions - more compact and consistent layout
+- Settings now appear in Control Panel → Saving tab under "CloudFlare Saver" section
+- Removed custom CSS styling in favor of standard TiddlyWiki control panel styles
+
 ### Fixed
 - **Critical:** Fixed timeout configuration validation - now handles non-numeric input gracefully (defaults to 30s, minimum 5s)
 - **Critical:** Fixed base64 encoding for large files - chunked processing prevents "Maximum call stack size exceeded" errors on wikis >1MB
