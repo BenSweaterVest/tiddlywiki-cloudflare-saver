@@ -37,7 +37,7 @@ function build() {
         const files = [
             { file: 'saver.js', type: 'application/javascript', 'module-type': 'saver', required: true },
             { file: 'startup.js', type: 'application/javascript', 'module-type': 'startup', required: true },
-            { file: 'settings.tid', type: 'text/vnd.tiddlywiki', tags: '$:/tags/ControlPanel/SettingsTab', caption: 'Cloudflare Saver', required: true },
+            { file: 'settings.tid', type: 'text/vnd.tiddlywiki', tags: '$:/tags/ControlPanel/Saving', required: true },
             { file: 'readme.tid', type: 'text/vnd.tiddlywiki', required: true }
         ];
 

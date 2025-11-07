@@ -15,9 +15,10 @@ This plugin enables saving your TiddlyWiki directly to a GitHub repository via C
 
 !! Quick Setup
 
-# Enable the plugin in Control Panel → Settings → Cloudflare Saver
-# Follow the complete setup guide (click "Complete Setup Instructions")
-# Configure your Cloudflare Function endpoint URL
+# Go to Control Panel → Saving tab
+# Find the CloudFlare Saver section
+# Enable saving to Cloudflare Functions
+# Follow the setup guide to configure your Cloudflare Function endpoint
 # Test the connection using the built-in test button
 
 !! How It Works
