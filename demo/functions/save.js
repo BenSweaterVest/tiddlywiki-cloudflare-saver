@@ -4,6 +4,10 @@
  *
  * Required Environment Variables:
  * - GITHUB_TOKEN: GitHub Personal Access Token (required)
+ *     Fine-grained token (recommended): starts with github_pat_
+ *       Permissions: Contents (read/write), Metadata (read)
+ *     Classic token: starts with ghp_
+ *       Scope: repo
  * - GITHUB_REPO: Repository in format "owner/repo" (required)
  * - SAVE_PASSWORD: Password for authentication (required)
  * - ALLOWED_ORIGINS: Comma-separated allowed origins (optional, defaults to *)

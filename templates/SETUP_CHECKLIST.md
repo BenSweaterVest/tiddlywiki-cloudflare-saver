@@ -18,9 +18,19 @@ Use this checklist to ensure you've completed all setup steps correctly.
 
 ## ✅ Step 2: GitHub Personal Access Token
 
-- [ ] Created Personal Access Token (classic or fine-grained)
-- [ ] Token has `repo` scope (or Contents: read/write for fine-grained)
+**Recommended: Fine-grained token (more secure)**
+- [ ] Created fine-grained Personal Access Token
+- [ ] Set repository access to "Only select repositories"
+- [ ] Selected your TiddlyWiki repository
+- [ ] Set permissions: Contents (Read and write), Metadata (Read-only)
+- [ ] Copied token securely (starts with `github_pat_`)
+
+**Alternative: Classic token**
+- [ ] Created classic Personal Access Token
+- [ ] Token has `repo` scope
 - [ ] Copied token securely (starts with `ghp_`)
+
+**Both options:**
 - [ ] Noted token for Step 4
 
 ## ✅ Step 3: Cloudflare Pages
@@ -42,7 +52,7 @@ Use this checklist to ensure you've completed all setup steps correctly.
 In Cloudflare Pages → Settings → Environment Variables → **Production**:
 
 - [ ] Added `GITHUB_TOKEN` (🔐 encrypted)
-  - Value: `ghp_...`
+  - Value: `github_pat_...` (fine-grained) or `ghp_...` (classic)
 - [ ] Added `GITHUB_REPO` (text)
   - Value: `username/repo-name`
 - [ ] Added `SAVE_PASSWORD` (🔐 encrypted)
