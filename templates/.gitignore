@@ -1,0 +1,32 @@
+# TiddlyWiki Repository .gitignore
+# Copy this to your TiddlyWiki repository
+
+# Local development files
+*.local.html
+*.backup.html
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node.js (if using Node.js TiddlyWiki)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment files (never commit secrets!)
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log

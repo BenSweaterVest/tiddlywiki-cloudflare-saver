@@ -14,7 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed custom CSS styling in favor of standard TiddlyWiki control panel styles
 
 ### Fixed
-- **Critical:** Fixed saver not being invoked - increased priority to 2000 and added endpoint validation to `canSave()` so saver is properly triggered when enabled and configured
+- **Critical:** Fixed saver not being invoked - added module-level `exports.info`, increased priority to 2000, and added endpoint validation to `canSave()` so saver is properly triggered when enabled and configured
+- **Critical:** Fixed textboxes not editable - added explicit `field="text"` attribute to all `$edit-text` widgets (TiddlyWiki requires explicit field specification in some contexts)
 - **Critical:** Fixed timeout configuration validation - now handles non-numeric input gracefully (defaults to 30s, minimum 5s)
 - **Critical:** Fixed base64 encoding for large files - chunked processing prevents "Maximum call stack size exceeded" errors on wikis >1MB
 - Fixed display name in Saving tab - added caption field so it shows "CloudFlare Saver" instead of full tiddler path

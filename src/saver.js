@@ -202,6 +202,13 @@ CloudflareSaver.prototype.info = {
     capabilities: ["save", "autosave"]
 };
 
+// Export saver info at module level
+exports.info = {
+    name: "cloudflare",
+    priority: 2000,
+    capabilities: ["save", "autosave"]
+};
+
 // Export module-level functions as required by TiddlyWiki
 exports.canSave = function(wiki) {
     // Use $tw.wiki global instead of wiki parameter during initialization

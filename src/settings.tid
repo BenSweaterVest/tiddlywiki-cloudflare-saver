@@ -15,7 +15,7 @@ Save your TiddlyWiki to GitHub via Cloudflare Functions with password authentica
 
 !!! Cloudflare Function Endpoint URL
 
-<$edit-text tiddler={{{ [<config-base>addsuffix[endpoint]] }}} default="" placeholder="https://your-site.pages.dev/functions/save" class="tc-edit-texteditor"/>
+<$edit-text tiddler={{{ [<config-base>addsuffix[endpoint]] }}} field="text" default="" placeholder="https://your-site.pages.dev/functions/save" class="tc-edit-texteditor"/>
 
 <div class="tc-control-panel-hint">
 The full URL to your deployed Cloudflare Function endpoint (e.g., `https://my-wiki.pages.dev/functions/save`)
@@ -37,7 +37,7 @@ The full URL to your deployed Cloudflare Function endpoint (e.g., `https://my-wi
 
 !!! Request Timeout
 
-<$edit-text tiddler={{{ [<config-base>addsuffix[timeout]] }}} default="30" class="tc-edit-texteditor" size="10"/> seconds
+<$edit-text tiddler={{{ [<config-base>addsuffix[timeout]] }}} field="text" default="30" class="tc-edit-texteditor" size="10"/> seconds
 
 <div class="tc-control-panel-hint">
 How long to wait for save requests before timing out (minimum 5 seconds)
