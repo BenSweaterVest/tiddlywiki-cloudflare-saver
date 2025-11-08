@@ -1,6 +1,6 @@
 {
   "name": "@bensweetervest/tiddlywiki-cloudflare-saver",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "TiddlyWiki plugin for saving to GitHub via Cloudflare Functions",
   "main": "dist/cloudflare-saver-plugin.json",
   "engines": {
@@ -18,7 +18,7 @@
   },
   "keywords": [
     "tiddlywiki",
-    "plugin", 
+    "plugin",
     "cloudflare",
     "github",
     "saver"
