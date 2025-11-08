@@ -44,7 +44,7 @@ Use this checklist to ensure you've completed all setup steps correctly.
   - [ ] Root directory: (empty)
 - [ ] Deployed successfully
 - [ ] Copied Cloudflare Pages URL (e.g., `https://my-wiki.pages.dev`)
-- [ ] Verified Function deployed (Functions tab shows `/functions/save`)
+- [ ] Verified Function deployed (Functions tab shows `/save` in routing configuration)
 - [ ] Verified wiki loads at URL
 
 ## ✅ Step 4: Environment Variables
@@ -80,7 +80,7 @@ In Cloudflare Pages → Settings → Environment Variables → **Production**:
 In TiddlyWiki Control Panel → Saving → CloudFlare Saver:
 
 - [ ] Enabled "Enable saving to Cloudflare Functions"
-- [ ] Entered endpoint URL: `https://your-wiki.pages.dev/functions/save`
+- [ ] Entered endpoint URL: `https://your-wiki.pages.dev/save`
 - [ ] Configured options:
   - [ ] Show save notifications: ✅
   - [ ] Auto-retry failed saves: ✅

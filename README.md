@@ -159,7 +159,7 @@ Now deploy your TiddlyWiki to Cloudflare Pages.
 
 5. **Verify the Function deployed**:
    - Go to your Cloudflare Pages project → "Functions" tab
-   - You should see `/functions/save` listed
+   - You should see `/save` listed in the routing configuration
    - If you don't see it, check that `functions/save.js` exists in your GitHub repo
 
 ### Step 4: Configure Environment Variables
@@ -288,7 +288,7 @@ Now configure the plugin to use your Cloudflare Function.
 3. **Enter your Cloudflare Function URL**:
    - In the "Cloudflare Function Endpoint URL" field, enter:
      ```
-     https://your-wiki-name.pages.dev/functions/save
+     https://your-wiki-name.pages.dev/save
      ```
    - Replace `your-wiki-name` with your actual Cloudflare Pages subdomain
 
@@ -416,7 +416,7 @@ Note: GitHub has a 100MB file size limit.
 **Solutions**:
 1. Check endpoint URL is configured:
    - Control Panel → Saving → CloudFlare Saver
-   - Endpoint should be: `https://your-site.pages.dev/functions/save`
+   - Endpoint should be: `https://your-site.pages.dev/save`
 2. Check "Enable saving" is checked
 3. Verify URL matches your Cloudflare Pages domain exactly
 
@@ -426,12 +426,12 @@ Note: GitHub has a 100MB file size limit.
 
 **Solutions**:
 1. Verify `functions/save.js` exists in GitHub repo root
-2. Check Cloudflare Pages → Functions tab shows `/functions/save`
+2. Check Cloudflare Pages → Functions tab shows `/save` in routing configuration
 3. If missing:
    - Add `functions/save.js` to your repo (copy from `demo/functions/save.js`)
    - Commit and push
    - Wait for Cloudflare redeploy
-4. Try the endpoint directly in browser: `https://your-site.pages.dev/functions/save`
+4. Try the endpoint directly in browser: `https://your-site.pages.dev/save`
    - Should return error (it requires POST) but confirms function exists
 
 ### "Invalid Password" (401 Error)
