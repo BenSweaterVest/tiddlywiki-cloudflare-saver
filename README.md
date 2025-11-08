@@ -41,7 +41,7 @@ Before you begin, you'll need:
 
 Follow these steps to set up the complete system from scratch.
 
-**📋 Want a checklist?** See [`templates/SETUP_CHECKLIST.md`](templates/SETUP_CHECKLIST.md) for a printable checklist to track your progress.
+**Want a checklist?** See [`templates/SETUP_CHECKLIST.md`](templates/SETUP_CHECKLIST.md) for a printable checklist to track your progress.
 
 ### Step 1: Create GitHub Repository
 
