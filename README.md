@@ -14,12 +14,12 @@ This plugin enables **automatic saving** of your TiddlyWiki to GitHub via Cloudf
 
 ### Key Features
 
-* 🔐 **Secure**: Password-protected saves, environment variable storage
-* ⚡ **Fast**: Serverless architecture via Cloudflare Functions
-* 🔄 **Reliable**: Auto-retry logic, conflict resolution
-* 📱 **User-Friendly**: Visual notifications, comprehensive setup guide
-* 🛠️ **Configurable**: Debug mode, timeout settings, password memory
-* 🤝 **Compatible**: Works alongside existing TiddlyWiki save methods
+* **Secure**: Password-protected saves, environment variable storage
+* **Fast**: Serverless architecture via Cloudflare Functions
+* **Reliable**: Auto-retry logic, conflict resolution
+* **User-Friendly**: Visual notifications, comprehensive setup guide
+* **Configurable**: Debug mode, timeout settings, password memory
+* **Compatible**: Works alongside existing TiddlyWiki save methods
 
 ## Prerequisites
 
@@ -41,7 +41,7 @@ Before you begin, you'll need:
 
 Follow these steps to set up the complete system from scratch.
 
-**📋 Want a checklist?** See [`templates/SETUP_CHECKLIST.md`](templates/SETUP_CHECKLIST.md) for a printable checklist to track your progress.
+**Want a checklist?** See [`templates/SETUP_CHECKLIST.md`](templates/SETUP_CHECKLIST.md) for a printable checklist to track your progress.
 
 ### Step 1: Create GitHub Repository
 
@@ -49,7 +49,7 @@ Follow these steps to set up the complete system from scratch.
    - Go to https://github.com/new
    - Name it (e.g., `my-tiddlywiki`)
    - Choose public or private
-   - ✅ Initialize with README
+   - Initialize with README (recommended)
    - Click "Create repository"
 
 2. **Create the repository structure**:
@@ -101,13 +101,13 @@ This is more secure because it limits access to only your TiddlyWiki repository.
 
 3. **Set permissions**:
    - Under "Repository permissions":
-     - **Contents**: Read and write ✅
-     - **Metadata**: Read-only ✅ (automatically selected)
+     - **Contents**: Read and write
+     - **Metadata**: Read-only (automatically selected)
    - All other permissions can remain as "No access"
 
 4. **Generate token**:
    - Click "Generate token"
-   - **⚠️ IMPORTANT**: Copy the token immediately (starts with `github_pat_`). You won't be able to see it again!
+   - **IMPORTANT**: Copy the token immediately (starts with `github_pat_`). You won't be able to see it again
 
 5. **Keep the token safe** - you'll use it in Step 4 (Environment Variables)
 
@@ -120,11 +120,11 @@ If you prefer the classic token type (gives access to all your repositories):
    - Click "Generate new token (classic)"
    - Name: `TiddlyWiki Cloudflare Saver`
    - Expiration: Choose your preferred duration
-   - Select scope: ✅ **`repo`** (Full control of private repositories)
+   - Select scope: **`repo`** (Full control of private repositories)
    - Click "Generate token"
-   - **⚠️ IMPORTANT**: Copy the token (starts with `ghp_`)
+   - **IMPORTANT**: Copy the token (starts with `ghp_`)
 
-**⚠️ Note**: Classic tokens have access to ALL your repositories. Fine-grained tokens are more secure.
+**Note**: Classic tokens have access to ALL your repositories. Fine-grained tokens are more secure.
 
 ### Step 3: Set Up Cloudflare Pages
 
@@ -155,7 +155,7 @@ Now deploy your TiddlyWiki to Cloudflare Pages.
 4. **Verify the deployment**:
    - Click the URL to open your TiddlyWiki
    - It should load successfully (it won't have the plugin yet)
-   - **⚠️ IMPORTANT**: Copy this URL - you'll need it for plugin configuration
+   - **IMPORTANT**: Copy this URL - you'll need it for plugin configuration
 
 5. **Verify the Function deployed**:
    - Go to your Cloudflare Pages project → "Functions" tab
@@ -169,15 +169,15 @@ The Cloudflare Function needs these secrets to work.
 1. **Go to Environment Variables**:
    - In your Cloudflare Pages project
    - Navigate to "Settings" → "Environment Variables"
-   - **⚠️ IMPORTANT**: Make sure you're in the **Production** environment (not Preview)
+   - **IMPORTANT**: Make sure you're in the **Production** environment (not Preview)
 
 2. **Add required variables**:
 
    | Variable Name | Type | Value | Example |
    |---------------|------|-------|---------|
-   | `GITHUB_TOKEN` | 🔐 **Secret** | Your GitHub token from Step 2 | `github_pat_...` (fine-grained) or `ghp_...` (classic) |
+   | `GITHUB_TOKEN` | **Secret** | Your GitHub token from Step 2 | `github_pat_...` (fine-grained) or `ghp_...` (classic) |
    | `GITHUB_REPO` | Text | Your repo in `username/repo-name` format | `myusername/my-tiddlywiki` |
-   | `SAVE_PASSWORD` | 🔐 **Secret** | Create a strong password for saves | `MySecurePassword123!` |
+   | `SAVE_PASSWORD` | **Secret** | Create a strong password for saves | `MySecurePassword123!` |
 
    **For each variable:**
    - Click "Add variable"
@@ -220,10 +220,10 @@ This is the easiest way for most users.
    - **Drag** the downloaded `.tid` file onto your TiddlyWiki page
    - An import dialog will appear
    - Click "Import" button
-   - **⚠️ IMPORTANT**: You'll see a warning that you can't save yet - this is expected
+   - **Note**: You'll see a warning that you can't save yet - this is expected
 
 4. **Save locally** (temporary workaround):
-   - Click the download button (💾) in TiddlyWiki to download a copy
+   - Click the download button in TiddlyWiki to download a copy
    - This saves a local HTML file with the plugin installed
 
 5. **Upload the updated file to GitHub**:
@@ -278,12 +278,12 @@ If you're running TiddlyWiki on Node.js locally:
 Now configure the plugin to use your Cloudflare Function.
 
 1. **Open Control Panel**:
-   - In your TiddlyWiki, click the gear icon (⚙️)
+   - In your TiddlyWiki, click the gear icon
    - Go to the **"Saving"** tab
    - Scroll down to find **"CloudFlare Saver"** section
 
 2. **Enable the saver**:
-   - ✅ Check "Enable saving to Cloudflare Functions"
+   - Check "Enable saving to Cloudflare Functions"
 
 3. **Enter your Cloudflare Function URL**:
    - In the "Cloudflare Function Endpoint URL" field, enter:
@@ -293,16 +293,16 @@ Now configure the plugin to use your Cloudflare Function.
    - Replace `your-wiki-name` with your actual Cloudflare Pages subdomain
 
 4. **Configure options** (recommended defaults):
-   - ✅ Show save notifications
-   - ✅ Auto-retry failed saves
-   - ⬜ Remember password during session (optional, only on trusted devices)
-   - ⬜ Enable debug logging (optional, for troubleshooting)
+   - Show save notifications (recommended)
+   - Auto-retry failed saves (recommended)
+   - Remember password during session (optional, only on trusted devices)
+   - Enable debug logging (optional, for troubleshooting)
 
 5. **Save the configuration**:
-   - Click the TiddlyWiki save button (💾 or checkmark)
+   - Click the TiddlyWiki save button
    - You'll be prompted for your password
    - Enter the `SAVE_PASSWORD` you created in Step 4
-   - The wiki should save to GitHub!
+   - The wiki should save to GitHub
 
 ### Step 7: Test It Works
 
@@ -329,7 +329,9 @@ Now configure the plugin to use your Cloudflare Function.
    - Once complete, refresh your wiki URL
    - Your changes should appear
 
-**🎉 Congratulations! Your TiddlyWiki is now set up with automatic cloud saving!**
+**Setup Complete**
+
+Your TiddlyWiki is now configured for automatic cloud saving.
 
 ## How the System Works
 
@@ -354,7 +356,7 @@ Access via Control Panel → Saving → CloudFlare Saver
 | **Endpoint URL** | (empty) | Full URL to your Cloudflare Function |
 | **Notifications** | Yes | Show save status notifications |
 | **Auto-retry** | Yes | Retry failed saves up to 3 times |
-| **Remember Password** | No | Remember password during browser session (⚠️ memory only) |
+| **Remember Password** | No | Remember password during browser session (memory only) |
 | **Debug Mode** | No | Enable detailed console logging |
 | **Timeout** | 30 seconds | Request timeout (minimum 5 seconds) |
 
@@ -526,7 +528,7 @@ Note: GitHub has a 100MB file size limit.
 For detailed troubleshooting:
 
 1. Control Panel → Saving → CloudFlare Saver
-2. ✅ Enable debug logging to console
+2. Enable debug logging to console
 3. Open browser console (F12)
 4. Try saving
 5. Check console for detailed logs:
@@ -683,4 +685,4 @@ See [CHANGELOG.md](CHANGELOG.md) for version history and updates.
 
 ---
 
-**Made with ❤️ for the TiddlyWiki community**
+Made for the TiddlyWiki community.
