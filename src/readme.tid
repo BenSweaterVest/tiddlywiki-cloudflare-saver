@@ -6,12 +6,12 @@ This plugin enables saving your TiddlyWiki directly to a GitHub repository via C
 
 !! Key Features
 
-* 🔐 **Secure**: Password-protected saves with environment variable storage
-* ⚡ **Fast**: Serverless architecture via Cloudflare Functions
-* 🔄 **Reliable**: Built-in retry logic and comprehensive error handling
-* 📱 **Responsive**: Visual notifications for save status
-* 🛠️ **Configurable**: Comprehensive settings panel with debug mode
-* 🤝 **Compatible**: Works alongside existing TiddlyWiki save methods
+* **Secure**: Password-protected saves with environment variable storage
+* **Fast**: Serverless architecture via Cloudflare Functions
+* **Reliable**: Built-in retry logic and comprehensive error handling
+* **Responsive**: Visual notifications for save status
+* **Configurable**: Comprehensive settings panel with debug mode
+* **Compatible**: Works alongside existing TiddlyWiki save methods
 
 !! Quick Setup
 

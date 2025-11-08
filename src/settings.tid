@@ -30,7 +30,7 @@ The full URL to your deployed Cloudflare Function endpoint (e.g., `https://my-wi
 <$checkbox tiddler={{{ [<config-base>addsuffix[remember-password]] }}} field="text" checked="yes" unchecked="no" default="no"> Remember password during session</$checkbox>
 
 <div class="tc-control-panel-hint">
-⚠️ Password is stored in memory only and cleared on page reload. Only enable on trusted devices.
+Password is stored in memory only and cleared on page reload. Only enable on trusted devices.
 </div>
 
 <$checkbox tiddler={{{ [<config-base>addsuffix[debug]] }}} field="text" checked="yes" unchecked="no" default="no"> Enable debug logging to console</$checkbox>
@@ -73,12 +73,12 @@ The function includes password authentication, rate limiting, content validation
 In Cloudflare Pages → Settings → Environment Variables → Production:
 
 |!Variable |!Type |!Description |
-|`GITHUB_TOKEN` |🔐 Secret |GitHub Personal Access Token (with `repo` scope) |
-|`GITHUB_REPO` |📝 Text |Repository in format `username/repo-name` |
-|`SAVE_PASSWORD` |🔐 Secret |Password for authenticating saves |
-|`FILE_PATH` |📝 Text |Path to TiddlyWiki file (optional, default: `index.html`) |
-|`MAX_CONTENT_SIZE` |📝 Text |Max file size in bytes (optional, default: 52428800 = 50MB) |
-|`ALLOWED_ORIGINS` |📝 Text |Comma-separated origins for CORS (optional, default: `*`) |
+|`GITHUB_TOKEN` |Secret |GitHub Personal Access Token (with `repo` scope) |
+|`GITHUB_REPO` |Text |Repository in format `username/repo-name` |
+|`SAVE_PASSWORD` |Secret |Password for authenticating saves |
+|`FILE_PATH` |Text |Path to TiddlyWiki file (optional, default: `index.html`) |
+|`MAX_CONTENT_SIZE` |Text |Max file size in bytes (optional, default: 52428800 = 50MB) |
+|`ALLOWED_ORIGINS` |Text |Comma-separated origins for CORS (optional, default: `*`) |
 
 Mark `GITHUB_TOKEN` and `SAVE_PASSWORD` as encrypted/secret variables.
 
