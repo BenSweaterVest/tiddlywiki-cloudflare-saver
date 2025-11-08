@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2025-01-08
+
+### Fixed
+- **Critical:** Fixed CORS preflight OPTIONS handler failing with undefined environment variables
+  - Added try-catch wrapper to ensure OPTIONS handler always returns HTTP 200
+  - Added optional chaining for safer environment variable access
+  - Prevents "Response to preflight request doesn't pass access control check" errors
+
+### Changed
+- Corrected endpoint URLs in all documentation from `/functions/save` to `/save`
+  - Cloudflare Pages mounts functions at base route path, not `/functions/{name}`
+  - Updated README, templates, plugin settings, and examples
+- Cleaned up documentation style
+  - Removed emoji usage from user-facing documentation
+  - Removed AI-style writing patterns for more professional tone
+  - Simplified language throughout documentation
+- Removed internal analysis files (BUG_ANALYSIS.md, CODE_REVIEW_SUMMARY.md)
+
 ## [1.0.0] - 2025-01-06
 
 ### Changed
