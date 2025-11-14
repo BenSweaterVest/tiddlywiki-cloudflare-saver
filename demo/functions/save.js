@@ -16,7 +16,7 @@
  */
 
 // Version constant - update when package.json version changes
-const VERSION = '1.0.1';
+const VERSION = '1.1.0';
 
 // Simple in-memory rate limiter (resets on cold start)
 const rateLimitMap = new Map();
