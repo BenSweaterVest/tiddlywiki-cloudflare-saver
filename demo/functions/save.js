@@ -15,6 +15,9 @@
  * - MAX_CONTENT_SIZE: Max content size in bytes (optional, defaults to 50MB)
  */
 
+// Version constant - update when package.json version changes
+const VERSION = '1.0.1';
+
 // Simple in-memory rate limiter (resets on cold start)
 const rateLimitMap = new Map();
 const RATE_LIMIT_WINDOW = 60000; // 1 minute
@@ -37,6 +40,48 @@ function checkRateLimit(identifier) {
   return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - record.count };
 }
 
+/**
+ * Determine the appropriate CORS origin based on allowed origins and request origin
+ * @param {string[]} allowedOrigins - Array of allowed origins
+ * @param {string|null} requestOrigin - The origin from the request headers
+ * @returns {string} The origin to use in Access-Control-Allow-Origin header
+ */
+function getCorsOrigin(allowedOrigins, requestOrigin) {
+  if (allowedOrigins.includes('*')) {
+    // Wildcard: allow the specific origin (including 'null' for local files)
+    return requestOrigin || '*';
+  } else if (requestOrigin === 'null' || allowedOrigins.includes('null')) {
+    // Explicitly allow local file access
+    return 'null';
+  } else if (allowedOrigins.includes(requestOrigin)) {
+    // Allow specific whitelisted origin
+    return requestOrigin;
+  } else {
+    // Fallback to first allowed origin
+    return allowedOrigins[0];
+  }
+}
+
+/**
+ * Get CORS headers for responses
+ * @param {string} allowOrigin - The origin to allow
+ * @param {boolean} includeContentType - Whether to include Content-Type header
+ * @returns {Object} Headers object
+ */
+function getCorsHeaders(allowOrigin, includeContentType = true) {
+  const headers = {
+    'Access-Control-Allow-Origin': allowOrigin,
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type'
+  };
+
+  if (includeContentType) {
+    headers['Content-Type'] = 'application/json';
+  }
+
+  return headers;
+}
+
 export async function onRequestPost(context) {
   const { request, env } = context;
 
@@ -46,31 +91,10 @@ export async function onRequestPost(context) {
   const maxContentSize = parseInt(env?.MAX_CONTENT_SIZE || '52428800'); // 50MB default
 
   // Determine CORS origin
-  // Handle 'null' origin (local file access) explicitly
   const requestOrigin = request.headers.get('Origin');
-  let allowOrigin;
-  if (allowedOrigins.includes('*')) {
-    // Wildcard: allow the specific origin (including 'null' for local files)
-    allowOrigin = requestOrigin || '*';
-  } else if (requestOrigin === 'null' || allowedOrigins.includes('null')) {
-    // Explicitly allow local file access
-    allowOrigin = 'null';
-  } else if (allowedOrigins.includes(requestOrigin)) {
-    // Allow specific whitelisted origin
-    allowOrigin = requestOrigin;
-  } else {
-    // Fallback to first allowed origin
-    allowOrigin = allowedOrigins[0];
-  }
+  const allowOrigin = getCorsOrigin(allowedOrigins, requestOrigin);
+  const corsHeaders = getCorsHeaders(allowOrigin);
 
-  // Set CORS headers
-  const corsHeaders = {
-    'Access-Control-Allow-Origin': allowOrigin,
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Content-Type': 'application/json'
-  };
-  
   try {
     // Parse request
     const { content, password, timestamp } = await request.json();
@@ -132,7 +156,7 @@ export async function onRequestPost(context) {
         headers: corsHeaders
       });
     }
-    
+
     // Validate environment variables
     if (!env.GITHUB_TOKEN || !env.GITHUB_REPO) {
       console.error('Missing environment variables');
@@ -157,12 +181,12 @@ export async function onRequestPost(context) {
           {
             headers: {
               'Authorization': `Bearer ${env.GITHUB_TOKEN}`,
-              'User-Agent': 'TiddlyWiki-Cloudflare-Saver/1.0',
+              'User-Agent': `TiddlyWiki-Cloudflare-Saver/${VERSION}`,
               'Accept': 'application/vnd.github.v3+json'
             }
           }
         );
-    
+
         let sha = null;
         if (currentFileResponse.ok) {
           const currentFile = await currentFileResponse.json();
@@ -206,7 +230,7 @@ export async function onRequestPost(context) {
             method: 'PUT',
             headers: {
               'Authorization': `Bearer ${env.GITHUB_TOKEN}`,
-              'User-Agent': 'TiddlyWiki-Cloudflare-Saver/1.0',
+              'User-Agent': `TiddlyWiki-Cloudflare-Saver/${VERSION}`,
               'Accept': 'application/vnd.github.v3+json',
               'Content-Type': 'application/json'
             },
@@ -269,11 +293,11 @@ export async function onRequestPost(context) {
       status: 500,
       headers: corsHeaders
     });
-    
+
   } catch (error) {
     console.error('Save function error:', error);
-    return new Response(JSON.stringify({ 
-      error: 'Internal server error: ' + error.message 
+    return new Response(JSON.stringify({
+      error: 'Internal server error: ' + error.message
     }), {
       status: 500,
       headers: corsHeaders
@@ -290,28 +314,13 @@ export async function onRequestOptions(context) {
     const allowedOrigins = env?.ALLOWED_ORIGINS ? env.ALLOWED_ORIGINS.split(',').map(o => o.trim()) : ['*'];
     const requestOrigin = request.headers.get('Origin');
 
-    // Determine CORS origin (same logic as POST handler)
-    let allowOrigin;
-    if (allowedOrigins.includes('*')) {
-      // Wildcard: allow the specific origin (including 'null' for local files)
-      allowOrigin = requestOrigin || '*';
-    } else if (requestOrigin === 'null' || allowedOrigins.includes('null')) {
-      // Explicitly allow local file access
-      allowOrigin = 'null';
-    } else if (allowedOrigins.includes(requestOrigin)) {
-      // Allow specific whitelisted origin
-      allowOrigin = requestOrigin;
-    } else {
-      // Fallback to first allowed origin
-      allowOrigin = allowedOrigins[0];
-    }
+    // Determine CORS origin
+    const allowOrigin = getCorsOrigin(allowedOrigins, requestOrigin);
 
     return new Response(null, {
       status: 200,
       headers: {
-        'Access-Control-Allow-Origin': allowOrigin,
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
+        ...getCorsHeaders(allowOrigin, false),
         'Access-Control-Max-Age': '86400'
       }
     });
@@ -322,12 +331,9 @@ export async function onRequestOptions(context) {
     return new Response(null, {
       status: 200,
       headers: {
-        'Access-Control-Allow-Origin': requestOrigin || '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
+        ...getCorsHeaders(requestOrigin || '*', false),
         'Access-Control-Max-Age': '86400'
       }
     });
   }
 }
-

@@ -24,23 +24,23 @@ Features:
  * CloudflareSaver constructor
  * @param {Object} wiki - TiddlyWiki wiki object
  */
-var CloudflareSaver = function(wiki) {
+const CloudflareSaver = function(wiki) {
     this.wiki = wiki;
     this.sessionPassword = null; // Store password for session if enabled
 };
 
 CloudflareSaver.prototype.save = function(text, method, callback, options) {
-    var self = this;
+    const self = this;
     options = options || {};
 
     // Check if this saver is enabled
-    var enabled = self.wiki.getTiddlerText("$:/config/cloudflare-saver/enabled", "no") === "yes";
+    const enabled = self.wiki.getTiddlerText("$:/config/cloudflare-saver/enabled", "no") === "yes";
     if(!enabled) {
         return false; // Let other savers handle it
     }
 
     // Validate configuration before claiming to handle the save
-    var endpoint = self.wiki.getTiddlerText("$:/config/cloudflare-saver/endpoint", "");
+    const endpoint = self.wiki.getTiddlerText("$:/config/cloudflare-saver/endpoint", "");
     if(!endpoint || endpoint.trim() === "") {
         return false; // Let other savers handle it if not configured
     }
@@ -50,7 +50,7 @@ CloudflareSaver.prototype.save = function(text, method, callback, options) {
         return false;
     }
 
-    var config = {
+    const config = {
         endpoint: endpoint,
         timeout: Math.max(5, parseInt(self.wiki.getTiddlerText("$:/config/cloudflare-saver/timeout", "30")) || 30) * 1000,
         notifications: self.wiki.getTiddlerText("$:/config/cloudflare-saver/notifications", "yes") === "yes",
@@ -63,7 +63,7 @@ CloudflareSaver.prototype.save = function(text, method, callback, options) {
         console.log("[CloudflareSaver] Starting save process");
     }
 
-    var password = null;
+    let password = null;
     if(config.rememberPassword && self.sessionPassword) {
         password = self.sessionPassword;
     } else {
@@ -85,17 +85,33 @@ CloudflareSaver.prototype.save = function(text, method, callback, options) {
     return true;
 };
 
-CloudflareSaver.prototype._performSave = function(text, password, callback, config, retryCount) {
-    var self = this;
-    var maxRetries = config.autoRetry ? 3 : 0;
-    
-    var xhr = new XMLHttpRequest();
-    xhr.open("POST", config.endpoint, true);
-    xhr.setRequestHeader("Content-Type", "application/json");
-    xhr.timeout = config.timeout;
-    
-    xhr.onload = function() {
-        if(xhr.status === 200) {
+CloudflareSaver.prototype._performSave = async function(text, password, callback, config, retryCount) {
+    const self = this;
+    const maxRetries = config.autoRetry ? 3 : 0;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), config.timeout);
+
+    try {
+        const payload = {
+            content: text,
+            password: password,
+            timestamp: new Date().toISOString(),
+            retryCount: retryCount
+        };
+
+        const response = await fetch(config.endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload),
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if(response.ok) {
             if(config.debug) {
                 console.log("[CloudflareSaver] Save successful");
             }
@@ -104,47 +120,37 @@ CloudflareSaver.prototype._performSave = function(text, password, callback, conf
                 $tw.notifier.display("$:/plugins/BenSweaterVest/cloudflare-saver/notifications/success");
             }
         } else {
-            self._handleSaveError(xhr, password, text, callback, config, retryCount);
+            const responseText = await response.text();
+            self._handleSaveError(response.status, response.statusText, responseText, password, text, callback, config, retryCount);
         }
-    };
-    
-    xhr.onerror = function() {
-        self._handleSaveError(xhr, password, text, callback, config, retryCount);
-    };
-    
-    xhr.ontimeout = function() {
-        self._handleSaveError(xhr, password, text, callback, config, retryCount);
-    };
-    
-    try {
-        var payload = {
-            content: text,
-            password: password,
-            timestamp: new Date().toISOString(),
-            retryCount: retryCount
-        };
-        xhr.send(JSON.stringify(payload));
-    } catch(e) {
-        callback("Failed to send Cloudflare save request: " + e.message);
+    } catch(error) {
+        clearTimeout(timeoutId);
+
+        // Handle abort/timeout separately
+        if (error.name === 'AbortError') {
+            self._handleSaveError(0, 'Request timeout', '', password, text, callback, config, retryCount);
+        } else {
+            self._handleSaveError(0, 'Network error', error.message, password, text, callback, config, retryCount);
+        }
     }
 };
 
-CloudflareSaver.prototype._handleSaveError = function(xhr, password, text, callback, config, retryCount) {
-    var self = this;
-    var maxRetries = config.autoRetry ? 3 : 0;
+CloudflareSaver.prototype._handleSaveError = function(status, statusText, responseText, password, text, callback, config, retryCount) {
+    const self = this;
+    const maxRetries = config.autoRetry ? 3 : 0;
 
-    var errorMsg = "Cloudflare save failed";
-    if(xhr.status) {
-        errorMsg += ": HTTP " + xhr.status;
-        if(xhr.statusText) {
-            errorMsg += " " + xhr.statusText;
+    let errorMsg = "Cloudflare save failed";
+    if(status) {
+        errorMsg += ": HTTP " + status;
+        if(statusText) {
+            errorMsg += " " + statusText;
         }
     }
 
     // Parse response for detailed error information
-    if(xhr.responseText) {
+    if(responseText) {
         try {
-            var response = JSON.parse(xhr.responseText);
+            const response = JSON.parse(responseText);
             if(response.error) {
                 errorMsg += " - " + response.error;
             }
@@ -153,35 +159,35 @@ CloudflareSaver.prototype._handleSaveError = function(xhr, password, text, callb
                 errorMsg += " (retry in " + response.resetIn + " seconds)";
             }
         } catch(e) {
-            if(xhr.responseText.length < 200) {
-                errorMsg += " - " + xhr.responseText;
+            if(responseText.length < 200) {
+                errorMsg += " - " + responseText;
             }
         }
     }
 
     // Handle specific HTTP status codes
-    if(xhr.status === 401) {
+    if(status === 401) {
         self.sessionPassword = null;
         errorMsg = "Cloudflare authentication failed. Please check your password.";
-    } else if(xhr.status === 429) {
+    } else if(status === 429) {
         errorMsg = "Rate limit exceeded. Please wait a minute before trying again.";
-    } else if(xhr.status === 413) {
+    } else if(status === 413) {
         errorMsg = "Content too large. Your TiddlyWiki exceeds the maximum allowed size.";
-    } else if(xhr.status === 409) {
+    } else if(status === 409) {
         errorMsg = "Conflict detected. Another save may be in progress.";
     }
 
     if(config.debug) {
         console.error("[CloudflareSaver] Error:", errorMsg, {
-            status: xhr.status,
+            status: status,
             retryCount: retryCount,
-            willRetry: retryCount < maxRetries && xhr.status !== 401
+            willRetry: retryCount < maxRetries && status !== 401
         });
     }
 
     // Retry logic (don't retry auth failures or rate limits)
-    if(retryCount < maxRetries && xhr.status !== 401 && xhr.status !== 429) {
-        var retryDelay = Math.min(1000 * Math.pow(2, retryCount), 10000);
+    if(retryCount < maxRetries && status !== 401 && status !== 429) {
+        const retryDelay = Math.min(1000 * Math.pow(2, retryCount), 10000);
         if(config.debug) {
             console.log("[CloudflareSaver] Retrying in " + (retryDelay / 1000) + " seconds...");
         }
@@ -212,8 +218,8 @@ exports.info = {
 // Export module-level functions as required by TiddlyWiki
 exports.canSave = function(wiki) {
     // Use $tw.wiki global instead of wiki parameter during initialization
-    var enabled = $tw.wiki.getTiddlerText("$:/config/cloudflare-saver/enabled", "no") === "yes";
-    var endpoint = $tw.wiki.getTiddlerText("$:/config/cloudflare-saver/endpoint", "");
+    const enabled = $tw.wiki.getTiddlerText("$:/config/cloudflare-saver/enabled", "no") === "yes";
+    const endpoint = $tw.wiki.getTiddlerText("$:/config/cloudflare-saver/endpoint", "");
     // Only claim we can save if both enabled AND endpoint is configured
     return enabled && endpoint && endpoint.trim() !== "";
 };
@@ -223,4 +229,3 @@ exports.create = function(wiki) {
 };
 
 })();
-
