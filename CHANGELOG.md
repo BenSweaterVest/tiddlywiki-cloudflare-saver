@@ -5,6 +5,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+- **Code Modernization:** Migrated from XMLHttpRequest to modern Fetch API with AbortController for proper timeout handling
+- **Code Quality:** Modernized variable declarations from `var` to `const`/`let` throughout codebase
+- **UI Improvement:** Fixed input field formatting in settings to use single-line inputs instead of multi-line textareas
+  - URL endpoint field now uses `type="url"` with proper single-line input
+  - Timeout field now uses `type="number"` with min validation
+  - Matches styling and behavior of other TiddlyWiki savers (GitHub, GitLab, etc.)
+- **Code Organization:** Extracted and consolidated CORS logic into reusable helper functions
+  - Added `getCorsOrigin()` function to centralize origin determination logic
+  - Added `getCorsHeaders()` function to generate consistent CORS headers
+  - Eliminated code duplication between POST and OPTIONS handlers
+- **Maintainability:** Added VERSION constant to Cloudflare Function, replacing hardcoded version strings
+  - Easier version updates across User-Agent headers
+  - Single source of truth for version tracking
+
+### Added
+- **Testing:** Comprehensive unit test suite with 60 tests across 3 test files
+  - Build script validation tests
+  - Plugin structure and metadata tests
+  - Code quality and modernization verification tests
+  - Cloudflare Function helper function tests
+  - 100% test pass rate
+- **Debug Logging:** Console logging in startup.js now respects debug mode setting
+  - Only logs when debug mode is explicitly enabled
+  - Reduces console noise in production environments
+
+### Technical Improvements
+- Modern async/await syntax in saver module for cleaner error handling
+- Proper timeout implementation using AbortController
+- Better error handling with granular error types (timeout, network, HTTP errors)
+- Improved code readability and maintainability
+
 ## [1.0.1] - 2025-01-08
 
 ### Fixed

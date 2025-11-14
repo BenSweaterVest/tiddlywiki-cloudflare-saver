@@ -16,9 +16,9 @@ exports.synchronous = true;
 
 exports.startup = function() {
     // Don't automatically set as default saver - let users choose
-    
+
     // Set up configuration defaults
-    var configDefaults = {
+    const configDefaults = {
         "$:/config/cloudflare-saver/endpoint": "",
         "$:/config/cloudflare-saver/timeout": "30",
         "$:/config/cloudflare-saver/notifications": "yes",
@@ -27,7 +27,7 @@ exports.startup = function() {
         "$:/config/cloudflare-saver/debug": "no",
         "$:/config/cloudflare-saver/enabled": "no"
     };
-    
+
     Object.keys(configDefaults).forEach(function(title) {
         if(!$tw.wiki.getTiddler(title)) {
             $tw.wiki.addTiddler(new $tw.Tiddler({
@@ -37,8 +37,12 @@ exports.startup = function() {
         }
     });
 
-    var enabled = $tw.wiki.getTiddlerText("$:/config/cloudflare-saver/enabled", "no") === "yes";
-    console.log("[CloudflareSaver] Plugin loaded successfully" + (enabled ? " and enabled" : " (disabled)"));
+    const enabled = $tw.wiki.getTiddlerText("$:/config/cloudflare-saver/enabled", "no") === "yes";
+    const debug = $tw.wiki.getTiddlerText("$:/config/cloudflare-saver/debug", "no") === "yes";
+
+    if (debug) {
+        console.log("[CloudflareSaver] Plugin loaded successfully" + (enabled ? " and enabled" : " (disabled)"));
+    }
 };
 
 })();
