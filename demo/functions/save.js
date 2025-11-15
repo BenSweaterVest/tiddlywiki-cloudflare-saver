@@ -287,7 +287,7 @@ export async function onRequestPost(context) {
     // If we got here, all retries failed
     console.error('Save function error after retries:', lastError);
     return new Response(JSON.stringify({
-      error: 'Failed to save after multiple attempts: ' + (lastError?.message || 'Unknown error'),
+      error: `Failed to save after multiple attempts: ${  lastError?.message || 'Unknown error'}`,
       attempts: attempt
     }), {
       status: 500,
@@ -297,7 +297,7 @@ export async function onRequestPost(context) {
   } catch (error) {
     console.error('Save function error:', error);
     return new Response(JSON.stringify({
-      error: 'Internal server error: ' + error.message
+      error: `Internal server error: ${  error.message}`
     }), {
       status: 500,
       headers: corsHeaders
