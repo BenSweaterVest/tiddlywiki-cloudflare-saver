@@ -3,7 +3,7 @@
     "$:/plugins/BenSweaterVest/cloudflare-saver/plugin.info": {
       "title": "$:/plugins/BenSweaterVest/cloudflare-saver/plugin.info",
       "type": "application/json",
-      "text": "{\n  \"title\": \"$:/plugins/BenSweaterVest/cloudflare-saver\",\n  \"description\": \"Save TiddlyWiki to GitHub via Cloudflare Functions with password authentication\",\n  \"author\": \"BenSweaterVest\",\n  \"version\": \"1.0.0\",\n  \"core-version\": \">=5.1.22\",\n  \"source\": \"https://github.com/BenSweaterVest/tiddlywiki-cloudflare-saver\",\n  \"plugin-type\": \"plugin\",\n  \"list\": \"readme\"\n}"
+      "text": "{\n  \"title\": \"$:/plugins/BenSweaterVest/cloudflare-saver\",\n  \"description\": \"Save TiddlyWiki to GitHub via Cloudflare Functions with password authentication\",\n  \"author\": \"BenSweaterVest\",\n  \"version\": \"1.1.0\",\n  \"core-version\": \">=5.1.22\",\n  \"source\": \"https://github.com/BenSweaterVest/tiddlywiki-cloudflare-saver\",\n  \"plugin-type\": \"plugin\",\n  \"list\": \"readme\"\n}"
     },
     "$:/plugins/BenSweaterVest/cloudflare-saver/saver.js": {
       "title": "$:/plugins/BenSweaterVest/cloudflare-saver/saver.js",
