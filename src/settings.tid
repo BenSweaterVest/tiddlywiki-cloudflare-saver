@@ -94,11 +94,11 @@ Mark `GITHUB_TOKEN` and `SAVE_PASSWORD` as encrypted/secret variables.
 
 <$button class="tc-btn-big-green">
 {{$:/core/images/save-button}} Test Cloudflare Save
-<$action-sendmessage $message="tm-save-wiki" param="cloudflare"/>
+<$action-test-cloudflare/>
 </$button>
 
 <div class="tc-control-panel-hint">
-This will attempt to save your wiki to test the connection. You'll be prompted for your password.
+This will test your Cloudflare Function connection without triggering other savers. You'll be prompted for your password and will see a clear success or error message.
 </div>
 
 </$reveal>
