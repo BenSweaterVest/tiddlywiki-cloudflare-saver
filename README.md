@@ -17,9 +17,11 @@ This plugin enables **automatic saving** of your TiddlyWiki to GitHub via Cloudf
 * **Secure**: Password-protected saves, environment variable storage
 * **Fast**: Serverless architecture via Cloudflare Functions
 * **Reliable**: Auto-retry logic, conflict resolution
-* **User-Friendly**: Visual notifications, comprehensive setup guide
+* **User-Friendly**: Interactive setup wizard, status indicators, save statistics
 * **Configurable**: Debug mode, timeout settings, password memory
 * **Compatible**: Works alongside existing TiddlyWiki save methods
+* **Transparent**: Real-time connection status and save tracking
+* **Modern**: Built with Fetch API, modern JavaScript (ES2015+)
 
 ## Prerequisites
 
@@ -275,7 +277,27 @@ If you're running TiddlyWiki on Node.js locally:
 
 ### Step 6: Configure the Plugin
 
-Now configure the plugin to use your Cloudflare Function.
+Now configure the plugin to use your Cloudflare Function. You can use the interactive wizard or configure manually.
+
+#### Option A: Interactive Setup Wizard (Recommended for First-Time Users)
+
+1. **Open Control Panel**:
+   - In your TiddlyWiki, click the gear icon
+   - Go to the **"Saving"** tab
+   - Scroll down to find **"CloudFlare Saver"** section
+
+2. **Launch the Setup Wizard**:
+   - Click the "Launch Setup Wizard" button
+   - The wizard will guide you through all 6 setup steps interactively
+   - At the final step, click "Auto-Configure Plugin" to automatically set your endpoint URL
+
+3. **Save the configuration**:
+   - Click the TiddlyWiki save button
+   - You'll be prompted for your password
+   - Enter the `SAVE_PASSWORD` you created in Step 4
+   - The wiki should save to GitHub
+
+#### Option B: Manual Configuration
 
 1. **Open Control Panel**:
    - In your TiddlyWiki, click the gear icon
@@ -345,6 +367,47 @@ Understanding the flow helps with troubleshooting:
 6. **GitHub webhook** triggers Cloudflare Pages deployment
 7. **Cloudflare Pages** rebuilds and deploys the updated wiki (~1-2 minutes)
 8. **Changes are live** at your Cloudflare Pages URL
+
+## Plugin Features
+
+The plugin settings page (Control Panel → Saving → CloudFlare Saver) includes several helpful features:
+
+### Interactive Setup Wizard
+
+- **6-step guided setup**: Walks you through creating GitHub repo, Cloudflare Pages, tokens, and configuration
+- **Auto-configuration**: Automatically sets endpoint URL at the end of the wizard
+- **Progress tracking**: Checkboxes to track your setup progress
+- **Integrated help**: Each step includes detailed instructions with links
+
+### Connection Status Indicator
+
+Real-time visual status of your last save:
+- **Green dot**: Last save was successful (shows timestamp)
+- **Red dot**: Last save failed (shows error message)
+- **Gray dot**: No saves yet
+
+This helps you quickly verify that your configuration is working correctly.
+
+### Save Statistics
+
+Track your wiki's save history:
+- **Successful saves count**: Total number of successful saves
+- **Failed saves count**: Total number of failed attempts
+- **Last save status**: Details about the most recent save operation
+- **Reset button**: Clear statistics and start fresh
+
+### Test Connection
+
+- **Test button**: Test your configuration without making actual changes to your wiki
+- **Detailed feedback**: Shows success or specific error messages with troubleshooting tips
+- **Safe testing**: Doesn't trigger other save methods or download files
+
+### Password Management
+
+When "Remember password during session" is enabled:
+- **Clear password button**: Manually clear the remembered password
+- **Session-only storage**: Password stored in memory only, cleared on page reload
+- **Security notification**: Shows confirmation when password is cleared
 
 ## Configuration Options
 
@@ -602,9 +665,12 @@ npm run dev       # Build and validate
 tiddlywiki-cloudflare-saver/
 ├── src/                          # Source code
 │   ├── plugin.info               # Plugin metadata
-│   ├── saver.js                  # Main saver module
+│   ├── saver.js                  # Main saver module with statistics
 │   ├── startup.js                # Initialization
-│   ├── settings.tid              # Settings UI
+│   ├── test-action.js            # Test connection widget
+│   ├── clear-password-action.js  # Clear password widget
+│   ├── settings.tid              # Settings UI with status & stats
+│   ├── wizard.tid                # Interactive setup wizard
 │   ├── readme.tid                # Plugin documentation
 │   └── notifications/            # Notification tiddlers
 │       ├── saving.tid

@@ -38,7 +38,9 @@ function build() {
       { file: 'saver.js', type: 'application/javascript', 'module-type': 'saver', required: true },
       { file: 'startup.js', type: 'application/javascript', 'module-type': 'startup', required: true },
       { file: 'test-action.js', type: 'application/javascript', 'module-type': 'widget', required: true },
+      { file: 'clear-password-action.js', type: 'application/javascript', 'module-type': 'widget', required: true },
       { file: 'settings.tid', type: 'text/vnd.tiddlywiki', required: true },
+      { file: 'wizard.tid', type: 'text/vnd.tiddlywiki', required: true },
       { file: 'readme.tid', type: 'text/vnd.tiddlywiki', required: true }
     ];
 
