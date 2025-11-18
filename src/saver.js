@@ -27,6 +27,12 @@ Features:
   const CloudflareSaver = function(wiki) {
     this.wiki = wiki;
     this.sessionPassword = null; // Store password for session if enabled
+
+    // Listen for clear password events
+    const self = this;
+    $tw.rootWidget.addEventListener('cloudflare-clear-password', () => {
+      self.sessionPassword = null;
+    });
   };
 
   CloudflareSaver.prototype.save = function(text, method, callback, options) {
@@ -113,6 +119,11 @@ Features:
         if(config.debug) {
           console.log('[CloudflareSaver] Save successful');
         }
+
+        // Update statistics
+        self._incrementStat('successful-saves');
+        self._updateLastSave('success');
+
         callback(null);
         if(config.notifications && typeof $tw !== 'undefined' && $tw.notifier) {
           $tw.notifier.display('$:/plugins/BenSweaterVest/cloudflare-saver/notifications/success');
@@ -193,11 +204,34 @@ Features:
         self._performSave(text, password, callback, config, retryCount + 1);
       }, retryDelay);
     } else {
+      // Update statistics for final failure
+      self._incrementStat('failed-saves');
+      self._updateLastSave('failure', errorMsg);
+
       callback(errorMsg);
       if(config.notifications && typeof $tw !== 'undefined' && $tw.notifier) {
         $tw.notifier.display('$:/plugins/BenSweaterVest/cloudflare-saver/notifications/failure');
       }
     }
+  };
+
+  CloudflareSaver.prototype._incrementStat = function(statName) {
+    const tiddlerTitle = `$:/config/cloudflare-saver/stats/${statName}`;
+    const currentValue = parseInt(this.wiki.getTiddlerText(tiddlerTitle, '0')) || 0;
+    this.wiki.addTiddler(new $tw.Tiddler({
+      title: tiddlerTitle,
+      text: String(currentValue + 1)
+    }));
+  };
+
+  CloudflareSaver.prototype._updateLastSave = function(status, error) {
+    const timestamp = new Date().toISOString();
+    this.wiki.addTiddler(new $tw.Tiddler({
+      title: '$:/config/cloudflare-saver/stats/last-save-status',
+      text: status,
+      'last-save-time': timestamp,
+      'last-save-error': error || ''
+    }));
   };
 
   CloudflareSaver.prototype.info = {

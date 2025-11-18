@@ -13,6 +13,36 @@ Save your TiddlyWiki to GitHub via Cloudflare Functions with password authentica
 
 <$reveal state={{{ [<config-base>addsuffix[enabled]] }}} type="match" text="yes" animate="yes">
 
+!!! Connection Status
+
+<div style="padding: 10px; background-color: #f8f9fa; border-radius: 4px; margin: 10px 0;">
+<$list filter="[[$:/config/cloudflare-saver/stats/last-save-status]get[text]match[success]]">
+<span style="color: green;">●</span> ''Last Save:'' Successful at <$view tiddler="$:/config/cloudflare-saver/stats/last-save-status" field="last-save-time"/>
+</$list>
+<$list filter="[[$:/config/cloudflare-saver/stats/last-save-status]get[text]match[failure]]">
+<span style="color: red;">●</span> ''Last Save:'' Failed at <$view tiddler="$:/config/cloudflare-saver/stats/last-save-status" field="last-save-time"/>
+<br>''Error:'' <$view tiddler="$:/config/cloudflare-saver/stats/last-save-status" field="last-save-error"/>
+</$list>
+<$list filter="[[$:/config/cloudflare-saver/stats/last-save-status]!has[text]]">
+<span style="color: gray;">●</span> ''Status:'' No saves yet
+</$list>
+</div>
+
+!!! Save Statistics
+
+<div style="padding: 10px; background-color: #f8f9fa; border-radius: 4px; margin: 10px 0;">
+''Successful Saves:'' <$text text={{{ [[$:/config/cloudflare-saver/stats/successful-saves]get[text]else[0]] }}}/>
+<br>
+''Failed Saves:'' <$text text={{{ [[$:/config/cloudflare-saver/stats/failed-saves]get[text]else[0]] }}}/>
+<br>
+<$button class="tc-btn-invisible tc-tiddlylink">
+🔄 Reset Statistics
+<$action-deletetiddler $tiddler="$:/config/cloudflare-saver/stats/successful-saves"/>
+<$action-deletetiddler $tiddler="$:/config/cloudflare-saver/stats/failed-saves"/>
+<$action-deletetiddler $tiddler="$:/config/cloudflare-saver/stats/last-save-status"/>
+</$button>
+</div>
+
 !!! Cloudflare Function Endpoint URL
 
 <$edit-text tiddler={{{ [<config-base>addsuffix[endpoint]] }}} field="text" default="" placeholder="https://your-site.pages.dev/save" tag="input" type="url" class="tc-edit-text"/>
@@ -29,6 +59,15 @@ The full URL to your deployed Cloudflare Function endpoint (e.g., `https://my-wi
 
 <$checkbox tiddler={{{ [<config-base>addsuffix[remember-password]] }}} field="text" checked="yes" unchecked="no" default="no"> Remember password during session</$checkbox>
 
+<$reveal state={{{ [<config-base>addsuffix[remember-password]] }}} type="match" text="yes">
+<div style="margin-left: 25px;">
+<$button class="tc-btn-invisible tc-tiddlylink">
+🔑 Clear Remembered Password
+<$action-clear-cloudflare-password/>
+</$button>
+</div>
+</$reveal>
+
 <div class="tc-control-panel-hint">
 Password is stored in memory only and cleared on page reload. Only enable on trusted devices.
 </div>
@@ -41,6 +80,17 @@ Password is stored in memory only and cleared on page reload. Only enable on tru
 
 <div class="tc-control-panel-hint">
 How long to wait for save requests before timing out (minimum 5 seconds)
+</div>
+
+!!! Quick Setup Wizard
+
+<$button class="tc-btn-big-green">
+🚀 Launch Setup Wizard
+<$action-navigate $to="$:/plugins/BenSweaterVest/cloudflare-saver/wizard"/>
+</$button>
+
+<div class="tc-control-panel-hint">
+Step-by-step guided setup for first-time users
 </div>
 
 !!! Setup Instructions
