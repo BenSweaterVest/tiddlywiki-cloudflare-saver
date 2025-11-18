@@ -45,7 +45,13 @@ How long to wait for save requests before timing out (minimum 5 seconds)
 
 !!! Setup Instructions
 
-<$details summary="Click to expand setup guide">
+<$button set="$:/state/cloudflare-saver/show-setup" setTo="yes" class="">
+<$list filter="[[$:/state/cloudflare-saver/show-setup]get[text]match[yes]]" emptyMessage="▶ Click to expand setup guide">
+▼ Click to hide setup guide
+</$list>
+</$button>
+
+<$reveal state="$:/state/cloudflare-saver/show-setup" type="match" text="yes" animate="yes">
 
 ''1. Create Cloudflare Pages Site''
 
@@ -88,7 +94,7 @@ Mark `GITHUB_TOKEN` and `SAVE_PASSWORD` as encrypted/secret variables.
 # Use the TiddlyWiki save button - you'll be prompted for your password
 # Check for success notification
 
-</$details>
+</$reveal>
 
 !!! Test Connection
 
