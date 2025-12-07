@@ -5,6 +5,54 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Health Check Endpoint**: GET endpoint for monitoring configuration and status
+  - Returns version, timestamp, configuration status
+  - Shows rate limiting parameters
+  - Returns 503 if not fully configured, 200 if ready
+  - Useful for monitoring and debugging deployment status
+- **Auto-Detect Endpoint Button**: Automatic endpoint URL detection in settings
+  - One-click button to auto-fill endpoint URL based on current location
+  - Eliminates manual URL entry for standard Cloudflare Pages deployments
+  - Shows success/failure notifications
+- **Input Validation**: Enhanced validation in Cloudflare Function
+  - ISO 8601 timestamp validation with clear error messages
+  - Validates timestamp format if provided
+  - Better error messages for all validation failures
+- **Integration Tests**: Comprehensive integration test suite (72+ tests total)
+  - Tests component integration and interaction
+  - Validates configuration defaults
+  - Ensures all features work together correctly
+- **Jest Configuration**: Explicit Jest configuration file
+  - Coverage thresholds set (70% across all metrics)
+  - Proper test environment configuration
+  - Verbose output and clear mocks settings
+- **Architecture Diagram**: Visual ASCII diagram in README
+  - Shows complete data flow from browser to deployment
+  - Helps users understand the system architecture
+  - Useful for troubleshooting and debugging
+
+### Changed
+- **Enhanced Security Documentation**: Stronger emphasis on fine-grained tokens
+  - Added security warning icons and highlighted text
+  - Clarified risks of classic tokens (access to ALL repos)
+  - Made fine-grained tokens the clear primary recommendation
+  - Demoted classic tokens to "Not Recommended" status
+- **Plugin Readme**: Updated version from 1.0.0 to 1.1.0
+  - Reflects current feature set
+  - Updated description to include new features
+- **Cloudflare Function**: Added GET method support for health checks
+  - CORS headers updated to allow GET requests
+  - Health endpoint doesn't require authentication
+
+### Technical Improvements
+- Location utility module for browser location access
+- Auto-detect endpoint action widget with notifications
+- Modular and testable code organization
+- Better separation of concerns
+
 ## [1.1.0] - 2025-01-18
 
 ### Added

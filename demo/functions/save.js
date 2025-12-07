@@ -71,7 +71,7 @@ function getCorsOrigin(allowedOrigins, requestOrigin) {
 function getCorsHeaders(allowOrigin, includeContentType = true) {
   const headers = {
     'Access-Control-Allow-Origin': allowOrigin,
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS, GET',
     'Access-Control-Allow-Headers': 'Content-Type'
   };
 
@@ -80,6 +80,19 @@ function getCorsHeaders(allowOrigin, includeContentType = true) {
   }
 
   return headers;
+}
+
+/**
+ * Validate ISO 8601 date string
+ * @param {string} dateString - Date string to validate
+ * @returns {boolean} True if valid ISO 8601 date
+ */
+function isValidISODate(dateString) {
+  if (!dateString || typeof dateString !== 'string') {
+    return false;
+  }
+  const date = new Date(dateString);
+  return date instanceof Date && !isNaN(date.getTime());
 }
 
 export async function onRequestPost(context) {
@@ -141,6 +154,16 @@ export async function onRequestPost(context) {
     if (content.trim().length === 0) {
       return new Response(JSON.stringify({
         error: 'Content cannot be empty'
+      }), {
+        status: 400,
+        headers: corsHeaders
+      });
+    }
+
+    // Validate timestamp format if provided
+    if (timestamp && !isValidISODate(timestamp)) {
+      return new Response(JSON.stringify({
+        error: 'Invalid timestamp format. Must be ISO 8601 (e.g., 2025-01-01T12:00:00.000Z)'
       }), {
         status: 400,
         headers: corsHeaders
@@ -336,4 +359,43 @@ export async function onRequestOptions(context) {
       }
     });
   }
+}
+
+// Handle health check requests
+export async function onRequestGet(context) {
+  const { request, env } = context;
+
+  // Get allowed origins from environment with safe fallback
+  const allowedOrigins = env?.ALLOWED_ORIGINS ? env.ALLOWED_ORIGINS.split(',').map(o => o.trim()) : ['*'];
+  const requestOrigin = request.headers.get('Origin');
+  const allowOrigin = getCorsOrigin(allowedOrigins, requestOrigin);
+  const corsHeaders = getCorsHeaders(allowOrigin);
+
+  // Check configuration status
+  const configStatus = {
+    githubToken: !!env?.GITHUB_TOKEN,
+    githubRepo: !!env?.GITHUB_REPO,
+    savePassword: !!env?.SAVE_PASSWORD
+  };
+
+  const allConfigured = configStatus.githubToken && configStatus.githubRepo && configStatus.savePassword;
+
+  return new Response(JSON.stringify({
+    status: 'healthy',
+    version: VERSION,
+    timestamp: new Date().toISOString(),
+    configuration: {
+      githubToken: configStatus.githubToken ? 'configured' : 'missing',
+      githubRepo: configStatus.githubRepo ? 'configured' : 'missing',
+      savePassword: configStatus.savePassword ? 'configured' : 'missing',
+      ready: allConfigured
+    },
+    rateLimiting: {
+      window: `${RATE_LIMIT_WINDOW / 1000}s`,
+      maxRequests: MAX_REQUESTS_PER_WINDOW
+    }
+  }), {
+    status: allConfigured ? 200 : 503,
+    headers: corsHeaders
+  });
 }

@@ -47,8 +47,13 @@ Save your TiddlyWiki to GitHub via Cloudflare Functions with password authentica
 
 <$edit-text tiddler={{{ [<config-base>addsuffix[endpoint]] }}} field="text" default="" placeholder="https://your-site.pages.dev/save" tag="input" type="url" class="tc-edit-text"/>
 
+<$button class="tc-btn-invisible tc-tiddlylink">
+🔍 Auto-Detect Endpoint
+<$action-auto-detect-cloudflare-endpoint/>
+</$button>
+
 <div class="tc-control-panel-hint">
-The full URL to your deployed Cloudflare Function endpoint (e.g., `https://my-wiki.pages.dev/save`)
+The full URL to your deployed Cloudflare Function endpoint (e.g., `https://my-wiki.pages.dev/save`). Click "Auto-Detect" to automatically fill based on your current URL.
 </div>
 
 !!! Advanced Options

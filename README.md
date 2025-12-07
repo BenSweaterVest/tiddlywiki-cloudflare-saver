@@ -85,7 +85,9 @@ Your repository should now have both `index.html` and `functions/save.js`.
 
 ### Step 2: Create GitHub Personal Access Token
 
-The Cloudflare Function needs permission to commit to your repository. We recommend using **fine-grained tokens** for better security.
+The Cloudflare Function needs permission to commit to your repository.
+
+**🔒 Security Recommendation**: Use **fine-grained tokens** (not classic tokens). Fine-grained tokens limit access to only your TiddlyWiki repository, while classic tokens have access to ALL your repositories.
 
 #### Option A: Fine-grained Personal Access Token (Recommended)
 
@@ -113,9 +115,11 @@ This is more secure because it limits access to only your TiddlyWiki repository.
 
 5. **Keep the token safe** - you'll use it in Step 4 (Environment Variables)
 
-#### Option B: Classic Personal Access Token (Alternative)
+#### Option B: Classic Personal Access Token (Not Recommended)
 
-If you prefer the classic token type (gives access to all your repositories):
+**⚠️ Security Warning**: Classic tokens have access to ALL your repositories. Use fine-grained tokens instead unless you have a specific reason not to.
+
+Only use if fine-grained tokens don't work for your setup:
 
 1. **Generate a classic token**:
    - Go to GitHub → Settings → Developer settings → [Personal access tokens → Tokens (classic)](https://github.com/settings/tokens)
@@ -125,8 +129,6 @@ If you prefer the classic token type (gives access to all your repositories):
    - Select scope: **`repo`** (Full control of private repositories)
    - Click "Generate token"
    - **IMPORTANT**: Copy the token (starts with `ghp_`)
-
-**Note**: Classic tokens have access to ALL your repositories. Fine-grained tokens are more secure.
 
 ### Step 3: Set Up Cloudflare Pages
 
@@ -367,6 +369,49 @@ Understanding the flow helps with troubleshooting:
 6. **GitHub webhook** triggers Cloudflare Pages deployment
 7. **Cloudflare Pages** rebuilds and deploys the updated wiki (~1-2 minutes)
 8. **Changes are live** at your Cloudflare Pages URL
+
+### Architecture Diagram
+
+```
+┌─────────────────┐
+│   TiddlyWiki    │  (1) User clicks Save
+│   (Browser)     │  (2) Plugin prompts for password
+└────────┬────────┘
+         │ (3) POST /save
+         │     {content, password, timestamp}
+         ▼
+┌─────────────────────────────┐
+│  Cloudflare Function (/save)│
+│  ┌──────────────────────┐   │  (4) Validate password
+│  │ • Rate Limiting      │   │      Check SAVE_PASSWORD
+│  │ • Password Auth      │   │
+│  │ • Content Validation │   │  (5) Commit to GitHub
+│  │ • Retry Logic        │   │      Using GITHUB_TOKEN
+│  └──────────────────────┘   │
+└────────┬────────────────────┘
+         │ GitHub API
+         │ PUT /repos/{owner}/{repo}/contents/{path}
+         ▼
+┌─────────────────┐
+│  GitHub Repo    │  (6) Webhook triggers
+│  ┌────────────┐ │      Cloudflare Pages
+│  │index.html  │ │
+│  │functions/  │ │
+│  └────────────┘ │
+└────────┬────────┘
+         │ Webhook
+         ▼
+┌─────────────────┐
+│ Cloudflare Pages│  (7) Auto-deploy
+│   Deployment    │      Build & Deploy
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  Updated Wiki   │  (8) Changes live
+│ (Public URL)    │      https://your-wiki.pages.dev
+└─────────────────┘
+```
 
 ## Plugin Features
 
