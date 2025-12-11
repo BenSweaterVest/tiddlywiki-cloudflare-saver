@@ -1,0 +1,73 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build plugin
+        run: npm run build
+
+      - name: Validate plugin
+        run: npm run validate
+
+      - name: Extract version from tag
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Check if pre-release
+        id: check_prerelease
+        run: |
+          if [[ "${{ steps.get_version.outputs.VERSION }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "PRERELEASE=false" >> $GITHUB_OUTPUT
+          else
+            echo "PRERELEASE=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            dist/cloudflare-saver-plugin.json
+            dist/cloudflare-saver-plugin.tid
+            demo/functions/save.js
+          generate_release_notes: true
+          prerelease: ${{ steps.check_prerelease.outputs.PRERELEASE }}
+          body: |
+            ## Installation
+
+            ### For Node.js TiddlyWiki
+            Download `cloudflare-saver-plugin.json` and place it in your plugins directory.
+
+            ### For Browser TiddlyWiki
+            Drag and drop `cloudflare-saver-plugin.tid` into your wiki.
+
+            ### Cloudflare Function
+            Copy `save.js` to your repository's `functions/` directory.
+
+            ## Full Documentation
+            See the [README](https://github.com/BenSweaterVest/tiddlywiki-cloudflare-saver#readme) for complete setup instructions.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

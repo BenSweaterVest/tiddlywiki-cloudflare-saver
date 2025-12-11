@@ -1,0 +1,5 @@
+<div class="tc-notification-banner tc-notification-banner-success">
+<$button class="tc-btn-invisible tc-notification-btn" message="tm-close-tiddler">{{$:/core/images/close-button}}</$button>
+{{$:/core/images/done-button}} Successfully saved to GitHub!
+</div>
+
