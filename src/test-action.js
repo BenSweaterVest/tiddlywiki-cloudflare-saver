@@ -155,7 +155,7 @@ Action widget to test Cloudflare save connection
     }
 
     // Create formatted content using TiddlyWiki markup
-    // Process message lines efficiently without intermediate arrays
+    // Process and format message lines for display
     const messageLines = message.split('\n').filter(line => line.trim()).join('\n\n');
     const formattedText = `<div style="background-color: ${color === 'green' ? '#d4edda' : color === 'red' ? '#f8d7da' : '#d1ecf1'}; border: 1px solid ${color === 'green' ? '#c3e6cb' : color === 'red' ? '#f5c6cb' : '#bee5eb'}; border-radius: 4px; padding: 15px; margin: 10px 0;">
 

@@ -230,7 +230,7 @@ export async function onRequestPost(context) {
 
         // Prepare content for GitHub (proper base64 encode with UTF-8 handling)
         // Using TextEncoder for proper UTF-8 encoding, then converting to base64
-        // Optimized to avoid "Maximum call stack size exceeded" for large files
+        // Optimized memory usage by building binary string directly instead of collecting chunks in array
         const utf8Bytes = new TextEncoder().encode(content);
         let binaryString = '';
         const chunkSize = 0x8000; // 32KB chunks to avoid stack overflow
