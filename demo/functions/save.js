@@ -236,7 +236,7 @@ export async function onRequestPost(context) {
         const chunkSize = 0x8000; // 32KB chunks to avoid stack overflow
         for (let i = 0; i < utf8Bytes.length; i += chunkSize) {
           const chunk = utf8Bytes.subarray(i, Math.min(i + chunkSize, utf8Bytes.length));
-          chunks.push(String.fromCharCode.apply(null, Array.from(chunk)));
+          chunks.push(String.fromCharCode(...chunk));
         }
         const binaryString = chunks.join('');
         const encodedContent = btoa(binaryString);

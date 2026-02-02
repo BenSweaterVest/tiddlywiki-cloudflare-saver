@@ -36,7 +36,7 @@ Action widget to auto-detect and set the Cloudflare endpoint URL
     let origin = '';
     if (typeof window !== 'undefined' && window.location) {
       origin = window.location.origin ||
-               (`${window.location.protocol  }//${  window.location.host}`);
+               (`${window.location.protocol}//${window.location.host}`);
     }
 
     if (!origin) {
@@ -59,7 +59,7 @@ Action widget to auto-detect and set the Cloudflare endpoint URL
     }
 
     // Set the endpoint URL
-    const endpoint = `${origin  }/save`;
+    const endpoint = `${origin}/save`;
     $tw.wiki.addTiddler(new $tw.Tiddler({
       title: '$:/config/cloudflare-saver/endpoint',
       text: endpoint
