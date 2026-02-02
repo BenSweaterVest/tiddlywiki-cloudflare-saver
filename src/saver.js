@@ -46,9 +46,8 @@ Features:
     }
   };
 
-  CloudflareSaver.prototype.save = function(text, method, callback, options) {
+  CloudflareSaver.prototype.save = function(text, method, callback, _options) {
     const self = this;
-    options = options || {};
 
     // Check if this saver is enabled
     const enabled = self.wiki.getTiddlerText('$:/config/cloudflare-saver/enabled', 'no') === 'yes';
@@ -157,9 +156,9 @@ Features:
 
     let errorMsg = 'Cloudflare save failed';
     if(status) {
-      errorMsg += `: HTTP ${  status}`;
+      errorMsg += `: HTTP ${status}`;
       if(statusText) {
-        errorMsg += ` ${  statusText}`;
+        errorMsg += ` ${statusText}`;
       }
     }
 
@@ -168,15 +167,15 @@ Features:
       try {
         const response = JSON.parse(responseText);
         if(response.error) {
-          errorMsg += ` - ${  response.error}`;
+          errorMsg += ` - ${response.error}`;
         }
         // Add rate limit information if available
         if(response.resetIn) {
-          errorMsg += ` (retry in ${  response.resetIn  } seconds)`;
+          errorMsg += ` (retry in ${response.resetIn} seconds)`;
         }
-      } catch(e) {
+      } catch(_e) {
         if(responseText.length < 200) {
-          errorMsg += ` - ${  responseText}`;
+          errorMsg += ` - ${responseText}`;
         }
       }
     }
@@ -205,7 +204,7 @@ Features:
     if(retryCount < maxRetries && status !== 401 && status !== 429) {
       const retryDelay = Math.min(1000 * Math.pow(2, retryCount), 10000);
       if(config.debug) {
-        console.log(`[CloudflareSaver] Retrying in ${  retryDelay / 1000  } seconds...`);
+        console.log(`[CloudflareSaver] Retrying in ${retryDelay / 1000} seconds...`);
       }
       setTimeout(() => {
         self._performSave(text, password, callback, config, retryCount + 1);
@@ -253,7 +252,7 @@ Features:
   };
 
   // Export module-level functions as required by TiddlyWiki
-  exports.canSave = function(wiki) {
+  exports.canSave = function(_wiki) {
     // Use $tw.wiki global instead of wiki parameter during initialization
     const enabled = $tw.wiki.getTiddlerText('$:/config/cloudflare-saver/enabled', 'no') === 'yes';
     const endpoint = $tw.wiki.getTiddlerText('$:/config/cloudflare-saver/endpoint', '');
