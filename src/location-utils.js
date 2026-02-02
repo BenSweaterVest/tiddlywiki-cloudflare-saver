@@ -17,7 +17,7 @@ Utility functions for getting browser location information
   exports.getOrigin = function() {
     if (typeof window !== 'undefined' && window.location) {
       return window.location.origin ||
-             (window.location.protocol + '//' + window.location.host);
+             (`${window.location.protocol  }//${  window.location.host}`);
     }
     return '';
   };
@@ -28,7 +28,7 @@ Utility functions for getting browser location information
    */
   exports.getAutoEndpoint = function() {
     const origin = exports.getOrigin();
-    return origin ? origin + '/save' : '';
+    return origin ? `${origin  }/save` : '';
   };
 
 })();
