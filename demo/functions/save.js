@@ -41,6 +41,15 @@ function checkRateLimit(identifier) {
 }
 
 /**
+ * Parse allowed origins from environment variable string
+ * @param {string|undefined} allowOriginString - Comma-separated allowed origins
+ * @returns {string[]} Array of allowed origins
+ */
+function parseAllowedOrigins(allowOriginString) {
+  return allowOriginString ? allowOriginString.split(',').map(o => o.trim()) : ['*'];
+}
+
+/**
  * Determine the appropriate CORS origin based on allowed origins and request origin
  * @param {string[]} allowedOrigins - Array of allowed origins
  * @param {string|null} requestOrigin - The origin from the request headers
@@ -99,7 +108,7 @@ export async function onRequestPost(context) {
   const { request, env } = context;
 
   // Get configuration from environment variables with safe fallbacks
-  const allowedOrigins = env?.ALLOWED_ORIGINS ? env.ALLOWED_ORIGINS.split(',').map(o => o.trim()) : ['*'];
+  const allowedOrigins = parseAllowedOrigins(env?.ALLOWED_ORIGINS);
   const filePath = env?.FILE_PATH || 'index.html';
   const maxContentSize = parseInt(env?.MAX_CONTENT_SIZE || '52428800'); // 50MB default
 
@@ -223,12 +232,13 @@ export async function onRequestPost(context) {
         // Using TextEncoder for proper UTF-8 encoding, then converting to base64
         // Process in chunks to avoid "Maximum call stack size exceeded" for large files
         const utf8Bytes = new TextEncoder().encode(content);
-        let binaryString = '';
+        const chunks = [];
         const chunkSize = 0x8000; // 32KB chunks to avoid stack overflow
         for (let i = 0; i < utf8Bytes.length; i += chunkSize) {
           const chunk = utf8Bytes.subarray(i, Math.min(i + chunkSize, utf8Bytes.length));
-          binaryString += String.fromCharCode.apply(null, chunk);
+          chunks.push(String.fromCharCode(...chunk));
         }
+        const binaryString = chunks.join('');
         const encodedContent = btoa(binaryString);
 
         // Prepare commit data
@@ -334,7 +344,7 @@ export async function onRequestOptions(context) {
     const { request, env } = context;
 
     // Get allowed origins from environment with safe fallback
-    const allowedOrigins = env?.ALLOWED_ORIGINS ? env.ALLOWED_ORIGINS.split(',').map(o => o.trim()) : ['*'];
+    const allowedOrigins = parseAllowedOrigins(env?.ALLOWED_ORIGINS);
     const requestOrigin = request.headers.get('Origin');
 
     // Determine CORS origin
@@ -366,7 +376,7 @@ export async function onRequestGet(context) {
   const { request, env } = context;
 
   // Get allowed origins from environment with safe fallback
-  const allowedOrigins = env?.ALLOWED_ORIGINS ? env.ALLOWED_ORIGINS.split(',').map(o => o.trim()) : ['*'];
+  const allowedOrigins = parseAllowedOrigins(env?.ALLOWED_ORIGINS);
   const requestOrigin = request.headers.get('Origin');
   const allowOrigin = getCorsOrigin(allowedOrigins, requestOrigin);
   const corsHeaders = getCorsHeaders(allowOrigin);

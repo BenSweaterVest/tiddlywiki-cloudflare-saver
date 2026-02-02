@@ -47,7 +47,9 @@ Action widget to clear the remembered session password
       }));
 
       setTimeout(() => {
-        $tw.wiki.deleteTiddler(tempTiddler);
+        if($tw.wiki.getTiddler(tempTiddler)) {
+          $tw.wiki.deleteTiddler(tempTiddler);
+        }
       }, 3000);
     }
 

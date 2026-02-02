@@ -35,6 +35,17 @@ Features:
     });
   };
 
+  /**
+   * Show a notification if enabled
+   * @param {string} notificationKey - The notification key (saving, success, failure)
+   * @param {Object} config - Configuration object with notifications flag
+   */
+  CloudflareSaver.prototype._showNotification = function(notificationKey, config) {
+    if(config && config.notifications && typeof $tw !== 'undefined' && $tw.notifier) {
+      $tw.notifier.display(`$:/plugins/BenSweaterVest/cloudflare-saver/notifications/${notificationKey}`);
+    }
+  };
+
   CloudflareSaver.prototype.save = function(text, method, callback, options) {
     const self = this;
     options = options || {};
@@ -83,9 +94,7 @@ Features:
       }
     }
 
-    if(config.notifications && typeof $tw !== 'undefined' && $tw.notifier) {
-      $tw.notifier.display('$:/plugins/BenSweaterVest/cloudflare-saver/notifications/saving');
-    }
+    self._showNotification('saving', config);
 
     self._performSave(text, password, callback, config, 0);
     return true;
@@ -125,9 +134,7 @@ Features:
         self._updateLastSave('success');
 
         callback(null);
-        if(config.notifications && typeof $tw !== 'undefined' && $tw.notifier) {
-          $tw.notifier.display('$:/plugins/BenSweaterVest/cloudflare-saver/notifications/success');
-        }
+        self._showNotification('success', config);
       } else {
         const responseText = await response.text();
         self._handleSaveError(response.status, response.statusText, responseText, password, text, callback, config, retryCount);
@@ -209,9 +216,7 @@ Features:
       self._updateLastSave('failure', errorMsg);
 
       callback(errorMsg);
-      if(config.notifications && typeof $tw !== 'undefined' && $tw.notifier) {
-        $tw.notifier.display('$:/plugins/BenSweaterVest/cloudflare-saver/notifications/failure');
-      }
+      self._showNotification('failure', config);
     }
   };
 
