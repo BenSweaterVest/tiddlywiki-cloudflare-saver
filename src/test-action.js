@@ -90,7 +90,7 @@ Action widget to test Cloudflare save connection
         const data = await response.json();
         self.showNotification('$:/plugins/BenSweaterVest/cloudflare-saver/notifications/success');
         self.showAlert(
-          `✅ Test successful!\n\nConnection to Cloudflare Function verified.\nCommit SHA: ${data.commit || 'N/A'}\n\nYour Cloudflare Saver is configured correctly.`,
+          `OK: Test successful.\n\nConnection to Cloudflare Function verified.\nCommit SHA: ${data.commit || 'N/A'}\n\nYour Cloudflare Saver is configured correctly.`,
           'success'
         );
       } else {
@@ -107,7 +107,7 @@ Action widget to test Cloudflare save connection
 
         self.showNotification('$:/plugins/BenSweaterVest/cloudflare-saver/notifications/failure');
         self.showAlert(
-          `❌ Test failed!\n\nError: ${errorMsg}\n\nPlease check:\n• Your endpoint URL is correct\n• Your password matches SAVE_PASSWORD in Cloudflare\n• Environment variables are configured\n• The Cloudflare Function is deployed`,
+          `ERROR: Test failed.\n\nError: ${errorMsg}\n\nPlease check:\n- Your endpoint URL is correct\n- Your password matches SAVE_PASSWORD in Cloudflare\n- Environment variables are configured\n- The Cloudflare Function is deployed`,
           'error'
         );
       }
@@ -123,7 +123,7 @@ Action widget to test Cloudflare save connection
 
       self.showNotification('$:/plugins/BenSweaterVest/cloudflare-saver/notifications/failure');
       self.showAlert(
-        `❌ Test failed!\n\nError: ${errorMsg}\n\nPlease check:\n• Your internet connection\n• The endpoint URL is accessible\n• CORS is configured to allow your origin\n• The Cloudflare Function is deployed`,
+        `ERROR: Test failed.\n\nError: ${errorMsg}\n\nPlease check:\n- Your internet connection\n- The endpoint URL is accessible\n- CORS is configured to allow your origin\n- The Cloudflare Function is deployed`,
         'error'
       );
     }
@@ -141,15 +141,15 @@ Action widget to test Cloudflare save connection
     let color = '';
 
     if (type === 'success') {
-      icon = '✅';
+      icon = 'OK';
       title = 'Test Successful';
       color = 'green';
     } else if (type === 'error') {
-      icon = '❌';
+      icon = 'ERROR';
       title = 'Test Failed';
       color = 'red';
     } else if (type === 'info') {
-      icon = 'ℹ️';
+      icon = 'INFO';
       title = 'Test Cancelled';
       color = 'blue';
     }

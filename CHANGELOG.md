@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 
 All notable changes to this project will be documented in this file.
 
@@ -7,51 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- (none)
+
+## [1.1.1] - 2026-02-06
+
 ### Added
-- **Health Check Endpoint**: GET endpoint for monitoring configuration and status
-  - Returns version, timestamp, configuration status
-  - Shows rate limiting parameters
-  - Returns 503 if not fully configured, 200 if ready
-  - Useful for monitoring and debugging deployment status
-- **Auto-Detect Endpoint Button**: Automatic endpoint URL detection in settings
-  - One-click button to auto-fill endpoint URL based on current location
-  - Eliminates manual URL entry for standard Cloudflare Pages deployments
-  - Shows success/failure notifications
-- **Input Validation**: Enhanced validation in Cloudflare Function
-  - ISO 8601 timestamp validation with clear error messages
-  - Validates timestamp format if provided
-  - Better error messages for all validation failures
-- **Integration Tests**: Comprehensive integration test suite (72+ tests total)
-  - Tests component integration and interaction
-  - Validates configuration defaults
-  - Ensures all features work together correctly
-- **Jest Configuration**: Explicit Jest configuration file
-  - Coverage thresholds set (70% across all metrics)
-  - Proper test environment configuration
-  - Verbose output and clear mocks settings
-- **Architecture Diagram**: Visual ASCII diagram in README
-  - Shows complete data flow from browser to deployment
-  - Helps users understand the system architecture
-  - Useful for troubleshooting and debugging
+- Local file usage guidance and CORS note for `null` origin
+- Rate limiter cleanup to avoid unbounded in-memory growth
+- Health check action widget for diagnostics
 
 ### Changed
-- **Enhanced Security Documentation**: Stronger emphasis on fine-grained tokens
-  - Added security warning icons and highlighted text
-  - Clarified risks of classic tokens (access to ALL repos)
-  - Made fine-grained tokens the clear primary recommendation
-  - Demoted classic tokens to "Not Recommended" status
-- **Plugin Readme**: Updated version from 1.0.0 to 1.1.0
-  - Reflects current feature set
-  - Updated description to include new features
-- **Cloudflare Function**: Added GET method support for health checks
-  - CORS headers updated to allow GET requests
-  - Health endpoint doesn't require authentication
+- Wizard and settings copy updated to recommend fine-grained GitHub tokens
+- UI labels and documentation cleaned up for consistent branding and ASCII-only text
+- Auto-detect endpoint now warns clearly when running from local files
+- Save status now records HTTP status codes for troubleshooting
+
+### Fixed
+- CORS origin resolution with `null` origins and empty `ALLOWED_ORIGINS`
+- Content validation now rejects non-string inputs and avoids large string copies
+- Multi-device stale save detection with clear refresh guidance
 
 ### Technical Improvements
-- Location utility module for browser location access
-- Auto-detect endpoint action widget with notifications
-- Modular and testable code organization
-- Better separation of concerns
+- Updated tests to cover CORS edge cases and parsing behavior
+- Added diagnostics action to settings and integration tests
 
 ## [1.1.0] - 2025-01-18
 
@@ -153,7 +131,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - **UI Improvement:** Moved settings from separate Control Panel tab to Saving section alongside other savers (GitHub, GitLab, etc.)
 - Simplified settings UI to match TiddlyWiki saver conventions - more compact and consistent layout
-- Settings now appear in Control Panel → Saving tab under "CloudFlare Saver" section
+- Settings now appear in Control Panel -> Saving tab under "Cloudflare Saver" section
 - Removed custom CSS styling in favor of standard TiddlyWiki control panel styles
 
 ### Fixed
@@ -161,7 +139,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Critical:** Fixed textboxes not editable - added explicit `field="text"` attribute to all `$edit-text` widgets (TiddlyWiki requires explicit field specification in some contexts)
 - **Critical:** Fixed timeout configuration validation - now handles non-numeric input gracefully (defaults to 30s, minimum 5s)
 - **Critical:** Fixed base64 encoding for large files - chunked processing prevents "Maximum call stack size exceeded" errors on wikis >1MB
-- Fixed display name in Saving tab - added caption field so it shows "CloudFlare Saver" instead of full tiddler path
+- Fixed display name in Saving tab - added caption field so it shows "Cloudflare Saver" instead of full tiddler path
 - Fixed textbox styling - removed excessive size attribute to match GitHub/GitLab saver appearance
 - Fixed build script .tid file parsing - now correctly extracts caption and tags from file headers
 - Fixed tiddler title mismatch - JavaScript modules now correctly include .js extension in titles
@@ -205,3 +183,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated settings.tid with correct, production-ready function code
 - Improved error messages with actionable information
 - Enhanced documentation with security best practices
+
+
+

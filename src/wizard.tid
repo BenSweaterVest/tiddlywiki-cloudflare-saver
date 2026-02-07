@@ -4,7 +4,7 @@ tags:
 
 \define wizard-state() $:/state/cloudflare-saver/wizard-step
 
-!! 🚀 Cloudflare Saver Setup Wizard
+!! Cloudflare Saver Setup Wizard
 
 Welcome! This wizard will guide you through setting up your Cloudflare Saver plugin step by step.
 
@@ -32,7 +32,7 @@ You need a GitHub repository to store your TiddlyWiki file.
 
 <$reveal state="$:/state/cloudflare-saver/wizard-step1-done" type="match" text="yes">
 <$button set=<<wizard-state>> setTo="2" class="tc-btn-big-green">
-Next Step →
+Next Step ->
 </$button>
 </$reveal>
 
@@ -62,12 +62,12 @@ Connect your repository to Cloudflare Pages.
 
 <$reveal state="$:/state/cloudflare-saver/wizard-pages-url" type="nomatch" text="">
 <$button set=<<wizard-state>> setTo="3" class="tc-btn-big-green">
-Next Step →
+Next Step ->
 </$button>
 </$reveal>
 
 <$button set=<<wizard-state>> setTo="1" class="tc-btn-invisible tc-tiddlylink">
-← Previous
+<- Previous
 </$button>
 
 </$reveal>
@@ -80,24 +80,26 @@ This allows Cloudflare to save changes to your repository.
 
 ''What to do:''
 
-# Go to https://github.com/settings/tokens
-# Click "Generate new token" → "Generate new token (classic)"
-# Name it "TiddlyWiki Cloudflare Saver"
-# Set expiration (recommend: No expiration for personal wikis)
-# Check the `repo` scope (Full control of private repositories)
+# Go to https://github.com/settings/tokens?type=beta
+# Create a fine-grained token named "TiddlyWiki Cloudflare Saver"
+# Set expiration as desired
+# Repository access: only your wiki repository
+# Permissions: Contents (read/write), Metadata (read)
 # Click "Generate token"
-# '''IMPORTANT:''' Copy the token immediately (it won't be shown again!)
+# IMPORTANT: Copy the token immediately (it will not be shown again)
+
+Classic tokens also work but are not recommended.
 
 <$checkbox tiddler="$:/state/cloudflare-saver/wizard-step3-done" field="text" checked="yes" unchecked="no"> I've generated and copied my token</$checkbox>
 
 <$reveal state="$:/state/cloudflare-saver/wizard-step3-done" type="match" text="yes">
 <$button set=<<wizard-state>> setTo="4" class="tc-btn-big-green">
-Next Step →
+Next Step ->
 </$button>
 </$reveal>
 
 <$button set=<<wizard-state>> setTo="2" class="tc-btn-invisible tc-tiddlylink">
-← Previous
+<- Previous
 </$button>
 
 </$reveal>
@@ -119,12 +121,12 @@ This is the serverless function that handles saves.
 
 <$reveal state="$:/state/cloudflare-saver/wizard-step4-done" type="match" text="yes">
 <$button set=<<wizard-state>> setTo="5" class="tc-btn-big-green">
-Next Step →
+Next Step ->
 </$button>
 </$reveal>
 
 <$button set=<<wizard-state>> setTo="3" class="tc-btn-invisible tc-tiddlylink">
-← Previous
+<- Previous
 </$button>
 
 </$reveal>
@@ -139,14 +141,14 @@ Set up the secrets and configuration in Cloudflare.
 
 # Go to your Cloudflare Pages dashboard
 # Select your project
-# Go to Settings → Environment Variables
+# Go to Settings -> Environment Variables
 # Click "Add variable" for Production
 # Add these variables:
 
 |!Variable |!Value |!Encrypt? |
-|`GITHUB_TOKEN` |Your GitHub token from Step 3 |✓ Yes |
+|`GITHUB_TOKEN` |Your GitHub token from Step 3 |Yes |
 |`GITHUB_REPO` |`your-username/your-repo-name` |No |
-|`SAVE_PASSWORD` |Choose a password for saves |✓ Yes |
+|`SAVE_PASSWORD` |Choose a password for saves |Yes |
 
 # Click "Save"
 # Wait for the automatic redeploy
@@ -155,12 +157,12 @@ Set up the secrets and configuration in Cloudflare.
 
 <$reveal state="$:/state/cloudflare-saver/wizard-step5-done" type="match" text="yes">
 <$button set=<<wizard-state>> setTo="6" class="tc-btn-big-green">
-Next Step →
+Next Step ->
 </$button>
 </$reveal>
 
 <$button set=<<wizard-state>> setTo="4" class="tc-btn-invisible tc-tiddlylink">
-← Previous
+<- Previous
 </$button>
 
 </$reveal>
@@ -191,7 +193,7 @@ This will enable the plugin and set your endpoint URL automatically.
 </div>
 
 <$button set=<<wizard-state>> setTo="5" class="tc-btn-invisible tc-tiddlylink">
-← Previous
+<- Previous
 </$button>
 
 </$reveal>
@@ -199,7 +201,7 @@ This will enable the plugin and set your endpoint URL automatically.
 <hr>
 
 <$button class="tc-btn-invisible tc-tiddlylink">
-🏠 Return to Settings
+Return to Settings
 <$action-navigate $to="$:/ControlPanel"/>
 <$action-deletetiddler $tiddler=<<wizard-state>>/>
 <$action-deletetiddler $tiddler="$:/state/cloudflare-saver/wizard-step1-done"/>

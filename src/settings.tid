@@ -1,9 +1,9 @@
-caption: CloudFlare Saver
+caption: Cloudflare Saver
 tags: $:/tags/ControlPanel/Saving
 
 \define config-base() $:/config/cloudflare-saver/
 
-!! ~CloudFlare Saver
+!! ~Cloudflare Saver
 
 <$checkbox tiddler={{{ [<config-base>addsuffix[enabled]] }}} field="text" checked="yes" unchecked="no" default="no"> Enable saving to Cloudflare Functions</$checkbox>
 
@@ -17,14 +17,15 @@ Save your TiddlyWiki to GitHub via Cloudflare Functions with password authentica
 
 <div style="padding: 10px; background-color: #f8f9fa; border-radius: 4px; margin: 10px 0;">
 <$list filter="[[$:/config/cloudflare-saver/stats/last-save-status]get[text]match[success]]">
-<span style="color: green;">●</span> ''Last Save:'' Successful at <$view tiddler="$:/config/cloudflare-saver/stats/last-save-status" field="last-save-time"/>
+<span style="color: green;">OK</span> ''Last Save:'' Successful at <$view tiddler="$:/config/cloudflare-saver/stats/last-save-status" field="last-save-time"/>
 </$list>
 <$list filter="[[$:/config/cloudflare-saver/stats/last-save-status]get[text]match[failure]]">
-<span style="color: red;">●</span> ''Last Save:'' Failed at <$view tiddler="$:/config/cloudflare-saver/stats/last-save-status" field="last-save-time"/>
+<span style="color: red;">ERROR</span> ''Last Save:'' Failed at <$view tiddler="$:/config/cloudflare-saver/stats/last-save-status" field="last-save-time"/>
 <br>''Error:'' <$view tiddler="$:/config/cloudflare-saver/stats/last-save-status" field="last-save-error"/>
+<br>''HTTP:'' <$view tiddler="$:/config/cloudflare-saver/stats/last-save-status" field="last-save-code"/>
 </$list>
 <$list filter="[[$:/config/cloudflare-saver/stats/last-save-status]!has[text]]">
-<span style="color: gray;">●</span> ''Status:'' No saves yet
+<span style="color: gray;">NONE</span> ''Status:'' No saves yet
 </$list>
 </div>
 
@@ -36,7 +37,7 @@ Save your TiddlyWiki to GitHub via Cloudflare Functions with password authentica
 ''Failed Saves:'' <$text text={{{ [[$:/config/cloudflare-saver/stats/failed-saves]get[text]else[0]] }}}/>
 <br>
 <$button class="tc-btn-invisible tc-tiddlylink">
-🔄 Reset Statistics
+Reset Statistics
 <$action-deletetiddler $tiddler="$:/config/cloudflare-saver/stats/successful-saves"/>
 <$action-deletetiddler $tiddler="$:/config/cloudflare-saver/stats/failed-saves"/>
 <$action-deletetiddler $tiddler="$:/config/cloudflare-saver/stats/last-save-status"/>
@@ -48,12 +49,12 @@ Save your TiddlyWiki to GitHub via Cloudflare Functions with password authentica
 <$edit-text tiddler={{{ [<config-base>addsuffix[endpoint]] }}} field="text" default="" placeholder="https://your-site.pages.dev/save" tag="input" type="url" class="tc-edit-text"/>
 
 <$button class="tc-btn-invisible tc-tiddlylink">
-🔍 Auto-Detect Endpoint
+Auto-Detect Endpoint
 <$action-auto-detect-cloudflare-endpoint/>
 </$button>
 
 <div class="tc-control-panel-hint">
-The full URL to your deployed Cloudflare Function endpoint (e.g., `https://my-wiki.pages.dev/save`). Click "Auto-Detect" to automatically fill based on your current URL.
+The full URL to your deployed Cloudflare Function endpoint (e.g., `https://my-wiki.pages.dev/save`). Click "Auto-Detect" to fill based on your current URL. Auto-detect is not available when running from a local file.
 </div>
 
 !!! Advanced Options
@@ -67,7 +68,7 @@ The full URL to your deployed Cloudflare Function endpoint (e.g., `https://my-wi
 <$reveal state={{{ [<config-base>addsuffix[remember-password]] }}} type="match" text="yes">
 <div style="margin-left: 25px;">
 <$button class="tc-btn-invisible tc-tiddlylink">
-🔑 Clear Remembered Password
+Clear Remembered Password
 <$action-clear-cloudflare-password/>
 </$button>
 </div>
@@ -90,7 +91,7 @@ How long to wait for save requests before timing out (minimum 5 seconds)
 !!! Quick Setup Wizard
 
 <$button class="tc-btn-big-green">
-🚀 Launch Setup Wizard
+Launch Setup Wizard
 <$action-navigate $to="$:/plugins/BenSweaterVest/cloudflare-saver/wizard"/>
 </$button>
 
@@ -101,8 +102,8 @@ Step-by-step guided setup for first-time users
 !!! Setup Instructions
 
 <$button set="$:/state/cloudflare-saver/show-setup" setTo="yes" class="">
-<$list filter="[[$:/state/cloudflare-saver/show-setup]get[text]match[yes]]" emptyMessage="▶ Click to expand setup guide">
-▼ Click to hide setup guide
+<$list filter="[[$:/state/cloudflare-saver/show-setup]get[text]match[yes]]" emptyMessage="Show setup guide">
+Hide setup guide
 </$list>
 </$button>
 
@@ -116,10 +117,11 @@ Step-by-step guided setup for first-time users
 
 ''2. Create GitHub Personal Access Token''
 
-# Go to GitHub → Settings → Developer settings → [[Personal access tokens|https://github.com/settings/tokens]]
-# Click "Generate new token (classic)"
-# Select scope: `repo` (Full control of private repositories)
+# Go to GitHub -> Settings -> Developer settings -> [[Personal access tokens (fine-grained)|https://github.com/settings/tokens?type=beta]]
+# Create a fine-grained token with access only to your wiki repo
+# Permissions: Contents (read/write), Metadata (read)
 # Copy the token securely
+# Classic tokens are supported but not recommended
 
 ''3. Create Cloudflare Function''
 
@@ -131,7 +133,7 @@ The function includes password authentication, rate limiting, content validation
 
 ''4. Set Environment Variables''
 
-In Cloudflare Pages → Settings → Environment Variables → Production:
+In Cloudflare Pages -> Settings -> Environment Variables -> Production:
 
 |!Variable |!Type |!Description |
 |`GITHUB_TOKEN` |Secret |GitHub Personal Access Token (with `repo` scope) |
@@ -142,6 +144,9 @@ In Cloudflare Pages → Settings → Environment Variables → Production:
 |`ALLOWED_ORIGINS` |Text |Comma-separated origins for CORS (optional, default: `*`) |
 
 Mark `GITHUB_TOKEN` and `SAVE_PASSWORD` as encrypted/secret variables.
+
+If you save from a local file (file://), include `null` in `ALLOWED_ORIGINS`:
+`ALLOWED_ORIGINS=null,https://your-wiki.pages.dev`
 
 ''5. Configure and Test''
 
@@ -160,6 +165,17 @@ Mark `GITHUB_TOKEN` and `SAVE_PASSWORD` as encrypted/secret variables.
 
 <div class="tc-control-panel-hint">
 This will test your Cloudflare Function connection without triggering other savers. You'll be prompted for your password and will see a clear success or error message.
+</div>
+
+!!! Diagnostics
+
+<$button class="tc-btn-invisible tc-tiddlylink">
+Run Health Check
+<$action-health-check-cloudflare/>
+</$button>
+
+<div class="tc-control-panel-hint">
+Runs a GET request to your Cloudflare Function to verify configuration and status.
 </div>
 
 </$reveal>

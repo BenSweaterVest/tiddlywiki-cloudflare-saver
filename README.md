@@ -1,4 +1,4 @@
-# TiddlyWiki Cloudflare Saver Plugin
+﻿# TiddlyWiki Cloudflare Saver Plugin
 
 ## Overview
 
@@ -9,8 +9,8 @@ This plugin enables **automatic saving** of your TiddlyWiki to GitHub via Cloudf
 1. **Host** your TiddlyWiki on Cloudflare Pages
 2. **Store** the TiddlyWiki file in a GitHub repository
 3. **Edit** your wiki in the browser
-4. **Click Save** → Plugin sends content to Cloudflare Function
-5. **Function commits** to GitHub → Cloudflare auto-deploys the update
+4. **Click Save** -> Plugin sends content to Cloudflare Function
+5. **Function commits** to GitHub -> Cloudflare auto-deploys the update
 
 ### Key Features
 
@@ -59,14 +59,14 @@ Follow these steps to set up the complete system from scratch.
    Your repository needs this structure:
    ```
    my-tiddlywiki/
-   ├── index.html          ← Your TiddlyWiki file
-   └── functions/
-       └── save.js         ← Cloudflare Function
+   +-- index.html          <- Your TiddlyWiki file
+   +-- functions/
+       +-- save.js         <- Cloudflare Function
    ```
 
 3. **Upload your TiddlyWiki file**:
    - Download an empty TiddlyWiki from https://tiddlywiki.com/#GettingStarted
-   - In your GitHub repo, click "Add file" → "Upload files"
+   - In your GitHub repo, click "Add file" -> "Upload files"
    - Upload the TiddlyWiki file and rename it to `index.html`
    - Commit the file
 
@@ -87,14 +87,14 @@ Your repository should now have both `index.html` and `functions/save.js`.
 
 The Cloudflare Function needs permission to commit to your repository.
 
-**🔒 Security Recommendation**: Use **fine-grained tokens** (not classic tokens). Fine-grained tokens limit access to only your TiddlyWiki repository, while classic tokens have access to ALL your repositories.
+**Security recommendation**: Use **fine-grained tokens** (not classic tokens). Fine-grained tokens limit access to only your TiddlyWiki repository, while classic tokens have access to ALL your repositories.
 
 #### Option A: Fine-grained Personal Access Token (Recommended)
 
 This is more secure because it limits access to only your TiddlyWiki repository.
 
 1. **Generate a fine-grained token**:
-   - Go to GitHub → Settings → Developer settings → [Personal access tokens → Fine-grained tokens](https://github.com/settings/tokens?type=beta)
+   - Go to GitHub -> Settings -> Developer settings -> [Personal access tokens -> Fine-grained tokens](https://github.com/settings/tokens?type=beta)
    - Click "Generate new token"
    - Name: `TiddlyWiki Cloudflare Saver`
    - Expiration: Choose your preferred duration (90 days, 1 year, or custom)
@@ -117,12 +117,12 @@ This is more secure because it limits access to only your TiddlyWiki repository.
 
 #### Option B: Classic Personal Access Token (Not Recommended)
 
-**⚠️ Security Warning**: Classic tokens have access to ALL your repositories. Use fine-grained tokens instead unless you have a specific reason not to.
+**Warning**: Classic tokens have access to ALL your repositories. Use fine-grained tokens instead unless you have a specific reason not to.
 
 Only use if fine-grained tokens don't work for your setup:
 
 1. **Generate a classic token**:
-   - Go to GitHub → Settings → Developer settings → [Personal access tokens → Tokens (classic)](https://github.com/settings/tokens)
+   - Go to GitHub -> Settings -> Developer settings -> [Personal access tokens -> Tokens (classic)](https://github.com/settings/tokens)
    - Click "Generate new token (classic)"
    - Name: `TiddlyWiki Cloudflare Saver`
    - Expiration: Choose your preferred duration
@@ -136,7 +136,7 @@ Now deploy your TiddlyWiki to Cloudflare Pages.
 
 1. **Connect to Cloudflare Pages**:
    - Go to https://dash.cloudflare.com/
-   - Navigate to "Workers & Pages" → "Pages"
+   - Navigate to "Workers & Pages" -> "Pages"
    - Click "Connect to Git"
    - Authorize Cloudflare to access your GitHub account
    - Select your TiddlyWiki repository
@@ -162,7 +162,7 @@ Now deploy your TiddlyWiki to Cloudflare Pages.
    - **IMPORTANT**: Copy this URL - you'll need it for plugin configuration
 
 5. **Verify the Function deployed**:
-   - Go to your Cloudflare Pages project → "Functions" tab
+   - Go to your Cloudflare Pages project -> "Functions" tab
    - You should see `/save` listed in the routing configuration
    - If you don't see it, check that `functions/save.js` exists in your GitHub repo
 
@@ -172,7 +172,7 @@ The Cloudflare Function needs these secrets to work.
 
 1. **Go to Environment Variables**:
    - In your Cloudflare Pages project
-   - Navigate to "Settings" → "Environment Variables"
+   - Navigate to "Settings" -> "Environment Variables"
    - **IMPORTANT**: Make sure you're in the **Production** environment (not Preview)
 
 2. **Add required variables**:
@@ -201,7 +201,7 @@ The Cloudflare Function needs these secrets to work.
 4. **Redeploy** (required for environment variables to take effect):
    - Go to "Deployments" tab
    - Find the latest deployment
-   - Click "⋯" → "Retry deployment"
+   - Click "..." -> "Retry deployment"
    - Wait for completion
 
 ### Step 5: Install the Plugin in Your TiddlyWiki
@@ -214,7 +214,7 @@ This is the easiest way for most users.
 
 1. **Download the plugin file**:
    - Download: [`cloudflare-saver-plugin.tid`](https://raw.githubusercontent.com/BenSweaterVest/tiddlywiki-cloudflare-saver/main/dist/cloudflare-saver-plugin.tid)
-   - Right-click → "Save link as..." → Save to your computer
+   - Right-click -> "Save link as..." -> Save to your computer
 
 2. **Open your TiddlyWiki from Cloudflare**:
    - Go to your Cloudflare Pages URL (e.g., `https://my-tiddlywiki.pages.dev`)
@@ -232,7 +232,7 @@ This is the easiest way for most users.
 
 5. **Upload the updated file to GitHub**:
    - Go to your GitHub repository
-   - Click on `index.html` → Click the pencil icon (Edit)
+   - Click on `index.html` -> Click the pencil icon (Edit)
    - Delete all content
    - Open your downloaded TiddlyWiki file in a text editor
    - Copy ALL the content
@@ -241,7 +241,7 @@ This is the easiest way for most users.
 
 6. **Wait for Cloudflare to redeploy**:
    - Cloudflare automatically detects the GitHub commit
-   - Go to Cloudflare Pages → Deployments
+   - Go to Cloudflare Pages -> Deployments
    - Wait for the new deployment to complete (~1-2 minutes)
 
 7. **Refresh your TiddlyWiki**:
@@ -286,7 +286,7 @@ Now configure the plugin to use your Cloudflare Function. You can use the intera
 1. **Open Control Panel**:
    - In your TiddlyWiki, click the gear icon
    - Go to the **"Saving"** tab
-   - Scroll down to find **"CloudFlare Saver"** section
+   - Scroll down to find **"Cloudflare Saver"** section
 
 2. **Launch the Setup Wizard**:
    - Click the "Launch Setup Wizard" button
@@ -304,7 +304,7 @@ Now configure the plugin to use your Cloudflare Function. You can use the intera
 1. **Open Control Panel**:
    - In your TiddlyWiki, click the gear icon
    - Go to the **"Saving"** tab
-   - Scroll down to find **"CloudFlare Saver"** section
+   - Scroll down to find **"Cloudflare Saver"** section
 
 2. **Enable the saver**:
    - Check "Enable saving to Cloudflare Functions"
@@ -328,6 +328,8 @@ Now configure the plugin to use your Cloudflare Function. You can use the intera
    - Enter the `SAVE_PASSWORD` you created in Step 4
    - The wiki should save to GitHub
 
+**Local file note**: If you open the wiki from a local file (file://), auto-detect will not work. Enter the endpoint URL manually.
+
 ### Step 7: Test It Works
 
 1. **Make a test edit**:
@@ -348,7 +350,7 @@ Now configure the plugin to use your Cloudflare Function. You can use the intera
    - The commit should be very recent (within the last minute)
 
 4. **Verify auto-deployment**:
-   - Go to Cloudflare Pages → Deployments
+   - Go to Cloudflare Pages -> Deployments
    - You should see a new deployment in progress or completed
    - Once complete, refresh your wiki URL
    - Your changes should appear
@@ -373,49 +375,49 @@ Understanding the flow helps with troubleshooting:
 ### Architecture Diagram
 
 ```
-┌─────────────────┐
-│   TiddlyWiki    │  (1) User clicks Save
-│   (Browser)     │  (2) Plugin prompts for password
-└────────┬────────┘
-         │ (3) POST /save
-         │     {content, password, timestamp}
-         ▼
-┌─────────────────────────────┐
-│  Cloudflare Function (/save)│
-│  ┌──────────────────────┐   │  (4) Validate password
-│  │ • Rate Limiting      │   │      Check SAVE_PASSWORD
-│  │ • Password Auth      │   │
-│  │ • Content Validation │   │  (5) Commit to GitHub
-│  │ • Retry Logic        │   │      Using GITHUB_TOKEN
-│  └──────────────────────┘   │
-└────────┬────────────────────┘
-         │ GitHub API
-         │ PUT /repos/{owner}/{repo}/contents/{path}
-         ▼
-┌─────────────────┐
-│  GitHub Repo    │  (6) Webhook triggers
-│  ┌────────────┐ │      Cloudflare Pages
-│  │index.html  │ │
-│  │functions/  │ │
-│  └────────────┘ │
-└────────┬────────┘
-         │ Webhook
-         ▼
-┌─────────────────┐
-│ Cloudflare Pages│  (7) Auto-deploy
-│   Deployment    │      Build & Deploy
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  Updated Wiki   │  (8) Changes live
-│ (Public URL)    │      https://your-wiki.pages.dev
-└─────────────────┘
++-----------------+
+|   TiddlyWiki    |  (1) User clicks Save
+|   (Browser)     |  (2) Plugin prompts for password
++--------+--------+
+         | (3) POST /save
+         |     {content, password, timestamp}
+         v
++-----------------------------+
+|  Cloudflare Function (/save)|
+|  +----------------------+   |  (4) Validate password
+|  | - Rate Limiting      |   |      Check SAVE_PASSWORD
+|  | - Password Auth      |   |
+|  | - Content Validation |   |  (5) Commit to GitHub
+|  | - Retry Logic        |   |      Using GITHUB_TOKEN
+|  +----------------------+   |
++--------+--------------------+
+         | GitHub API
+         | PUT /repos/{owner}/{repo}/contents/{path}
+         v
++-----------------+
+|  GitHub Repo    |  (6) Webhook triggers
+|  +------------+ |      Cloudflare Pages
+|  |index.html  | |
+|  |functions/  | |
+|  +------------+ |
++--------+--------+
+         | Webhook
+         v
++-----------------+
+| Cloudflare Pages|  (7) Auto-deploy
+|   Deployment    |      Build & Deploy
++--------+--------+
+         |
+         v
++-----------------+
+|  Updated Wiki   |  (8) Changes live
+| (Public URL)    |      https://your-wiki.pages.dev
++-----------------+
 ```
 
 ## Plugin Features
 
-The plugin settings page (Control Panel → Saving → CloudFlare Saver) includes several helpful features:
+The plugin settings page (Control Panel -> Saving -> Cloudflare Saver) includes several helpful features:
 
 ### Interactive Setup Wizard
 
@@ -447,6 +449,12 @@ Track your wiki's save history:
 - **Detailed feedback**: Shows success or specific error messages with troubleshooting tips
 - **Safe testing**: Doesn't trigger other save methods or download files
 
+### Diagnostics and Health Check
+
+- **Health check button**: Calls the Cloudflare Function GET endpoint
+- **Configuration status**: Shows whether required secrets are configured
+- **Quick troubleshooting**: Confirms your deployment is reachable
+
 ### Password Management
 
 When "Remember password during session" is enabled:
@@ -456,7 +464,7 @@ When "Remember password during session" is enabled:
 
 ## Configuration Options
 
-Access via Control Panel → Saving → CloudFlare Saver
+Access via Control Panel -> Saving -> Cloudflare Saver
 
 | Setting | Default | Description |
 |---------|---------|-------------|
@@ -490,6 +498,12 @@ By default, the function accepts requests from any origin (`*`). For better secu
 
 2. Redeploy
 
+If you plan to save from a local file (file://), include `null` as an allowed origin:
+
+```
+ALLOWED_ORIGINS=null,https://your-wiki.pages.dev
+```
+
 ### Larger File Size Limit
 
 Default maximum is 50MB. To increase:
@@ -506,11 +520,11 @@ Note: GitHub has a 100MB file size limit.
 
 ### Plugin Not Appearing
 
-**Symptoms**: No "CloudFlare Saver" section in Control Panel → Saving
+**Symptoms**: No "Cloudflare Saver" section in Control Panel -> Saving
 
 **Solutions**:
 1. Verify plugin installed:
-   - Control Panel → Plugins tab
+   - Control Panel -> Plugins tab
    - Look for "BenSweaterVest/cloudflare-saver"
 2. If missing:
    - Re-import the `.tid` file
@@ -525,7 +539,7 @@ Note: GitHub has a 100MB file size limit.
 
 **Solutions**:
 1. Check endpoint URL is configured:
-   - Control Panel → Saving → CloudFlare Saver
+   - Control Panel -> Saving -> Cloudflare Saver
    - Endpoint should be: `https://your-site.pages.dev/save`
 2. Check "Enable saving" is checked
 3. Verify URL matches your Cloudflare Pages domain exactly
@@ -536,7 +550,7 @@ Note: GitHub has a 100MB file size limit.
 
 **Solutions**:
 1. Verify `functions/save.js` exists in GitHub repo root
-2. Check Cloudflare Pages → Functions tab shows `/save` in routing configuration
+2. Check Cloudflare Pages -> Functions tab shows `/save` in routing configuration
 3. If missing:
    - Add `functions/save.js` to your repo (copy from `demo/functions/save.js`)
    - Commit and push
@@ -550,7 +564,7 @@ Note: GitHub has a 100MB file size limit.
 
 **Solutions**:
 1. Verify `SAVE_PASSWORD` environment variable:
-   - Cloudflare Pages → Settings → Environment Variables
+   - Cloudflare Pages -> Settings -> Environment Variables
    - Check it's set for **Production** environment
    - Check it's marked as encrypted
 2. Try resetting the password:
@@ -603,6 +617,17 @@ Note: GitHub has a 100MB file size limit.
    - Redeploy
 3. Consider archiving old tiddlers to reduce size
 
+### "Please Refresh Before Saving" (409 Error)
+
+**Symptoms**: Save fails with a message telling you to refresh first
+
+**Cause**: The wiki in your browser is older than the latest version in GitHub. This can happen when you edit from multiple devices or tabs.
+
+**Solutions**:
+1. Refresh the page and wait for the latest wiki to load
+2. Re-apply your changes if needed
+3. Save again
+
 ### Saves Work But Changes Don't Appear
 
 **Symptoms**: Save succeeds but refreshing wiki shows old content
@@ -612,7 +637,7 @@ Note: GitHub has a 100MB file size limit.
    - Go to your repository
    - Check `index.html` has recent commits
 2. Check Cloudflare deployment:
-   - Cloudflare Pages → Deployments
+   - Cloudflare Pages -> Deployments
    - Verify deployment succeeded
    - Check deployment timestamp
 3. Clear browser cache:
@@ -635,7 +660,7 @@ Note: GitHub has a 100MB file size limit.
 
 For detailed troubleshooting:
 
-1. Control Panel → Saving → CloudFlare Saver
+1. Control Panel -> Saving -> Cloudflare Saver
 2. Enable debug logging to console
 3. Open browser console (F12)
 4. Try saving
@@ -681,6 +706,14 @@ This plugin works as an **additional** save option:
 - **Flexible usage**: Use different save methods for different scenarios
 - **No conflicts**: Doesn't interfere with other TiddlyWiki functionality
 
+## TiddlyWiki Best Practices
+
+- Configure the endpoint before enabling the saver.
+- Use the built-in Test Connection button after setup.
+- Refresh the wiki before long editing sessions on multiple devices.
+- Keep the download saver available as a fallback.
+- Use "Remember password" only on trusted devices.
+
 ## Development
 
 ### Building from Source
@@ -708,33 +741,33 @@ npm run dev       # Build and validate
 
 ```
 tiddlywiki-cloudflare-saver/
-├── src/                          # Source code
-│   ├── plugin.info               # Plugin metadata
-│   ├── saver.js                  # Main saver module with statistics
-│   ├── startup.js                # Initialization
-│   ├── test-action.js            # Test connection widget
-│   ├── clear-password-action.js  # Clear password widget
-│   ├── settings.tid              # Settings UI with status & stats
-│   ├── wizard.tid                # Interactive setup wizard
-│   ├── readme.tid                # Plugin documentation
-│   └── notifications/            # Notification tiddlers
-│       ├── saving.tid
-│       ├── success.tid
-│       └── failure.tid
-├── demo/                         # Example files
-│   └── functions/
-│       └── save.js               # Cloudflare Function
-├── templates/                    # Templates for your wiki repo
-│   ├── .gitignore                # Git ignore template
-│   ├── README.md                 # Wiki repo README template
-│   └── SETUP_CHECKLIST.md        # Setup progress checklist
-├── dist/                         # Built plugin files
-│   ├── cloudflare-saver-plugin.tid
-│   └── cloudflare-saver-plugin.json
-├── scripts/                      # Build scripts
-│   ├── build.js
-│   └── validate.js
-└── README.md                     # This file
++-- src/                          # Source code
+|   +-- plugin.info               # Plugin metadata
+|   +-- saver.js                  # Main saver module with statistics
+|   +-- startup.js                # Initialization
+|   +-- test-action.js            # Test connection widget
+|   +-- clear-password-action.js  # Clear password widget
+|   +-- settings.tid              # Settings UI with status & stats
+|   +-- wizard.tid                # Interactive setup wizard
+|   +-- readme.tid                # Plugin documentation
+|   +-- notifications/            # Notification tiddlers
+|       +-- saving.tid
+|       +-- success.tid
+|       +-- failure.tid
++-- demo/                         # Example files
+|   +-- functions/
+|       +-- save.js               # Cloudflare Function
++-- templates/                    # Templates for your wiki repo
+|   +-- .gitignore                # Git ignore template
+|   +-- README.md                 # Wiki repo README template
+|   +-- SETUP_CHECKLIST.md        # Setup progress checklist
++-- dist/                         # Built plugin files
+|   +-- cloudflare-saver-plugin.tid
+|   +-- cloudflare-saver-plugin.json
++-- scripts/                      # Build scripts
+|   +-- build.js
+|   +-- validate.js
++-- README.md                     # This file
 ```
 
 ### Contributing
@@ -797,3 +830,7 @@ See [CHANGELOG.md](CHANGELOG.md) for version history and updates.
 ---
 
 Made for the TiddlyWiki community.
+
+
+
+

@@ -25,6 +25,7 @@ describe('Plugin Integration', () => {
         'saver.js',
         'startup.js',
         'test-action.js',
+        'health-check-action.js',
         'clear-password-action.js',
         'auto-detect-endpoint-action.js',
         'location-utils.js',
@@ -43,6 +44,9 @@ describe('Plugin Integration', () => {
       const testAction = plugin.tiddlers['$:/plugins/BenSweaterVest/cloudflare-saver/test-action.js'];
       expect(testAction.text).toContain('exports[\'action-test-cloudflare\']');
 
+      const healthAction = plugin.tiddlers['$:/plugins/BenSweaterVest/cloudflare-saver/health-check-action.js'];
+      expect(healthAction.text).toContain('exports[\'action-health-check-cloudflare\']');
+
       const clearAction = plugin.tiddlers['$:/plugins/BenSweaterVest/cloudflare-saver/clear-password-action.js'];
       expect(clearAction.text).toContain('exports[\'action-clear-cloudflare-password\']');
 
@@ -54,6 +58,7 @@ describe('Plugin Integration', () => {
       const settings = plugin.tiddlers['$:/plugins/BenSweaterVest/cloudflare-saver/settings'];
 
       expect(settings.text).toContain('action-test-cloudflare');
+      expect(settings.text).toContain('action-health-check-cloudflare');
       expect(settings.text).toContain('action-clear-cloudflare-password');
       expect(settings.text).toContain('action-auto-detect-cloudflare-endpoint');
     });
@@ -61,7 +66,7 @@ describe('Plugin Integration', () => {
     test('settings has correct control panel tag', () => {
       const settings = plugin.tiddlers['$:/plugins/BenSweaterVest/cloudflare-saver/settings'];
       expect(settings.tags).toContain('$:/tags/ControlPanel/Saving');
-      expect(settings.caption).toBe('CloudFlare Saver');
+      expect(settings.caption).toBe('Cloudflare Saver');
     });
   });
 

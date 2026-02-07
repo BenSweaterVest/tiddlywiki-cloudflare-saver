@@ -16,8 +16,12 @@ Utility functions for getting browser location information
    */
   exports.getOrigin = function() {
     if (typeof window !== 'undefined' && window.location) {
-      return window.location.origin ||
-             (`${window.location.protocol}//${window.location.host}`);
+      const origin = window.location.origin ||
+        (`${window.location.protocol}//${window.location.host}`);
+      if (!origin || origin === 'null' || window.location.protocol === 'file:') {
+        return '';
+      }
+      return origin;
     }
     return '';
   };

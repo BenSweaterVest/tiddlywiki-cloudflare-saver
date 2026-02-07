@@ -12,11 +12,12 @@ This plugin enables saving your TiddlyWiki directly to a GitHub repository via C
 * **Responsive**: Visual notifications for save status
 * **Configurable**: Comprehensive settings panel with debug mode
 * **Compatible**: Works alongside existing TiddlyWiki save methods
+* **Diagnostics**: Built-in health check for quick status verification
 
 !! Quick Setup
 
-# Go to Control Panel → Saving tab
-# Find the CloudFlare Saver section
+# Go to Control Panel -> Saving tab
+# Find the Cloudflare Saver section
 # Enable saving to Cloudflare Functions
 # Follow the setup guide to configure your Cloudflare Function endpoint
 # Test the connection using the built-in test button
@@ -32,5 +33,5 @@ https://github.com/BenSweaterVest/tiddlywiki-cloudflare-saver
 
 !! Version
 
-Version 1.1.0 - Enhanced with interactive wizard, status indicators, and save statistics tracking.
+Version 1.1.1 - Polished UX, stronger validation, and updated setup guidance.
 

@@ -1,4 +1,4 @@
-# TiddlyWiki Cloudflare Saver Setup Checklist
+﻿# TiddlyWiki Cloudflare Saver Setup Checklist
 
 Use this checklist to ensure you've completed all setup steps correctly.
 
@@ -11,9 +11,9 @@ Use this checklist to ensure you've completed all setup steps correctly.
 - [ ] Verified repository structure:
   ```
   your-repo/
-  ├── index.html
-  └── functions/
-      └── save.js
+  +-- index.html
+  +-- functions/
+      +-- save.js
   ```
 
 ## Step 2: GitHub Personal Access Token
@@ -49,7 +49,7 @@ Use this checklist to ensure you've completed all setup steps correctly.
 
 ## Step 4: Environment Variables
 
-In Cloudflare Pages → Settings → Environment Variables → **Production**:
+In Cloudflare Pages -> Settings -> Environment Variables -> **Production**:
 
 - [ ] Added `GITHUB_TOKEN` (encrypted)
   - Value: `github_pat_...` (fine-grained) or `ghp_...` (classic)
@@ -60,7 +60,7 @@ In Cloudflare Pages → Settings → Environment Variables → **Production**:
 - [ ] Optional: Added `FILE_PATH` if not using `index.html`
 - [ ] Optional: Added `MAX_CONTENT_SIZE` if needed
 - [ ] Optional: Added `ALLOWED_ORIGINS` for CORS security
-- [ ] Redeployed after adding variables (Deployments → Retry deployment)
+- [ ] Redeployed after adding variables (Deployments -> Retry deployment)
 - [ ] Waited for deployment to complete
 
 ## Step 5: Install Plugin
@@ -73,11 +73,11 @@ In Cloudflare Pages → Settings → Environment Variables → **Production**:
 - [ ] Uploaded updated file to GitHub `index.html`
 - [ ] Waited for Cloudflare redeploy
 - [ ] Hard refreshed browser (`Ctrl+Shift+R`)
-- [ ] Verified plugin appears in Control Panel → Plugins
+- [ ] Verified plugin appears in Control Panel -> Plugins
 
 ## Step 6: Configure Plugin
 
-In TiddlyWiki Control Panel → Saving → CloudFlare Saver:
+In TiddlyWiki Control Panel -> Saving -> Cloudflare Saver:
 
 - [ ] Enabled "Enable saving to Cloudflare Functions"
 - [ ] Entered endpoint URL: `https://your-wiki.pages.dev/save`
@@ -124,3 +124,6 @@ Record your setup details here:
 ---
 
 Keep this checklist for reference and future troubleshooting!
+
+
+

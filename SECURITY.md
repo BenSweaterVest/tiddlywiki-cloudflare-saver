@@ -1,14 +1,14 @@
-# Security Policy
+﻿# Security Policy
 
 ## Supported Versions
 
 We actively maintain and provide security updates for the following versions:
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 1.1.x   | :white_check_mark: |
-| 1.0.x   | :white_check_mark: |
-| < 1.0   | :x:                |
+| Version | Supported |
+| ------- | --------- |
+| 1.1.x   | Yes       |
+| 1.0.x   | Yes       |
+| < 1.0   | No        |
 
 ## Reporting a Vulnerability
 
@@ -148,3 +148,6 @@ Security updates will be:
 If you have questions about this security policy, please open a discussion in the GitHub repository.
 
 Thank you for helping keep TiddlyWiki Cloudflare Saver secure!
+
+
+

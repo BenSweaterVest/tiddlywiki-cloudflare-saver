@@ -38,7 +38,8 @@ describe('Build Script', () => {
     const requiredTiddlers = [
       '$:/plugins/BenSweaterVest/cloudflare-saver/plugin.info',
       '$:/plugins/BenSweaterVest/cloudflare-saver/saver.js',
-      '$:/plugins/BenSweaterVest/cloudflare-saver/startup.js'
+      '$:/plugins/BenSweaterVest/cloudflare-saver/startup.js',
+      '$:/plugins/BenSweaterVest/cloudflare-saver/health-check-action.js'
     ];
 
     requiredTiddlers.forEach(tiddler => {
@@ -119,6 +120,6 @@ describe('Build Script', () => {
 
     expect(settings).toBeDefined();
     expect(settings.text).toBeDefined();
-    expect(settings.text).toContain('CloudFlare Saver');
+    expect(settings.text).toContain('Cloudflare Saver');
   });
 });

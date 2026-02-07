@@ -6,17 +6,40 @@
  */
 
 describe('Cloudflare Function Helpers', () => {
+  // Mock implementation of parseAllowedOrigins (from demo/functions/save.js)
+  function parseAllowedOrigins(allowOriginString) {
+    if (!allowOriginString || allowOriginString.trim().length === 0) {
+      return ['*'];
+    }
+
+    const parsed = allowOriginString
+      .split(',')
+      .map(o => o.trim())
+      .filter(o => o.length > 0);
+
+    return parsed.length > 0 ? parsed : ['*'];
+  }
+
   // Mock implementation of getCorsOrigin (from demo/functions/save.js)
   function getCorsOrigin(allowedOrigins, requestOrigin) {
+    const fallbackOrigin = allowedOrigins.find(origin => origin !== 'null') || allowedOrigins[0];
+
+    if (requestOrigin === 'null') {
+      if (allowedOrigins.includes('*') || allowedOrigins.includes('null')) {
+        return 'null';
+      }
+      return fallbackOrigin;
+    }
+
     if (allowedOrigins.includes('*')) {
       return requestOrigin || '*';
-    } else if (requestOrigin === 'null' || allowedOrigins.includes('null')) {
-      return 'null';
-    } else if (allowedOrigins.includes(requestOrigin)) {
-      return requestOrigin;
-    } else {
-      return allowedOrigins[0];
     }
+
+    if (requestOrigin && allowedOrigins.includes(requestOrigin)) {
+      return requestOrigin;
+    }
+
+    return fallbackOrigin;
   }
 
   // Mock implementation of getCorsHeaders (from demo/functions/save.js)
@@ -56,6 +79,24 @@ describe('Cloudflare Function Helpers', () => {
     return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - record.count };
   }
 
+  describe('parseAllowedOrigins', () => {
+    test('defaults to wildcard when unset', () => {
+      expect(parseAllowedOrigins(undefined)).toEqual(['*']);
+    });
+
+    test('defaults to wildcard when empty string', () => {
+      expect(parseAllowedOrigins('')).toEqual(['*']);
+      expect(parseAllowedOrigins('   ')).toEqual(['*']);
+    });
+
+    test('filters empty entries', () => {
+      expect(parseAllowedOrigins('https://a.com, , https://b.com,')).toEqual([
+        'https://a.com',
+        'https://b.com'
+      ]);
+    });
+  });
+
   describe('getCorsOrigin', () => {
     test('returns wildcard for wildcard allowed origins', () => {
       const result = getCorsOrigin(['*'], 'https://example.com');
@@ -85,6 +126,16 @@ describe('Cloudflare Function Helpers', () => {
     test('allows null in allowed origins list', () => {
       const result = getCorsOrigin(['null', 'https://example.com'], 'null');
       expect(result).toBe('null');
+    });
+
+    test('does not return null for normal origin when null is allowed', () => {
+      const result = getCorsOrigin(['null', 'https://example.com'], 'https://example.com');
+      expect(result).toBe('https://example.com');
+    });
+
+    test('falls back to first non-null origin when request origin is not allowed', () => {
+      const result = getCorsOrigin(['null', 'https://example.com'], 'https://other.com');
+      expect(result).toBe('https://example.com');
     });
 
     test('handles multiple specific origins', () => {

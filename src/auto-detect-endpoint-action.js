@@ -11,6 +11,7 @@ Action widget to auto-detect and set the Cloudflare endpoint URL
   'use strict';
 
   const Widget = require('$:/core/modules/widgets/widget.js').widget;
+  const locationUtils = require('$:/plugins/BenSweaterVest/cloudflare-saver/location-utils.js');
 
   const AutoDetectEndpointAction = function(parseTreeNode,options) {
     this.initialise(parseTreeNode,options);
@@ -33,11 +34,7 @@ Action widget to auto-detect and set the Cloudflare endpoint URL
 
   AutoDetectEndpointAction.prototype.invokeAction = function(_triggeringWidget,_event) {
     // Get the current origin
-    let origin = '';
-    if (typeof window !== 'undefined' && window.location) {
-      origin = window.location.origin ||
-               (`${window.location.protocol}//${window.location.host}`);
-    }
+    const origin = locationUtils.getOrigin();
 
     if (!origin) {
       // Show notification if we can't detect
@@ -45,7 +42,7 @@ Action widget to auto-detect and set the Cloudflare endpoint URL
         const tempTiddler = '$:/temp/cloudflare-auto-detect-failed';
         $tw.wiki.addTiddler(new $tw.Tiddler({
           title: tempTiddler,
-          text: 'Could not auto-detect endpoint URL. Please enter it manually.',
+          text: 'Auto-detect is unavailable for local files or unknown origins. Please enter the endpoint manually.',
           tags: '$:/tags/Alert'
         }));
 

@@ -16,7 +16,7 @@
  */
 
 // Version constant - update when package.json version changes
-const VERSION = '1.1.0';
+const VERSION = '1.1.1';
 
 // Simple in-memory rate limiter (resets on cold start)
 const rateLimitMap = new Map();
@@ -24,6 +24,7 @@ const RATE_LIMIT_WINDOW = 60000; // 1 minute
 const MAX_REQUESTS_PER_WINDOW = 30; // 30 requests per minute
 
 function checkRateLimit(identifier) {
+  cleanupRateLimitMap(Date.now());
   const now = Date.now();
   const record = rateLimitMap.get(identifier);
 
@@ -40,13 +41,42 @@ function checkRateLimit(identifier) {
   return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - record.count };
 }
 
+function cleanupRateLimitMap(now) {
+  if (rateLimitMap.size <= 1000) {
+    return;
+  }
+
+  for (const [key, record] of rateLimitMap.entries()) {
+    if (now - record.windowStart > RATE_LIMIT_WINDOW) {
+      rateLimitMap.delete(key);
+    }
+  }
+
+  while (rateLimitMap.size > 1000) {
+    const oldestKey = rateLimitMap.keys().next().value;
+    if (!oldestKey) {
+      break;
+    }
+    rateLimitMap.delete(oldestKey);
+  }
+}
+
 /**
  * Parse allowed origins from environment variable string
  * @param {string|undefined} allowOriginString - Comma-separated allowed origins
  * @returns {string[]} Array of allowed origins
  */
 function parseAllowedOrigins(allowOriginString) {
-  return allowOriginString ? allowOriginString.split(',').map(o => o.trim()) : ['*'];
+  if (!allowOriginString || allowOriginString.trim().length === 0) {
+    return ['*'];
+  }
+
+  const parsed = allowOriginString
+    .split(',')
+    .map(o => o.trim())
+    .filter(o => o.length > 0);
+
+  return parsed.length > 0 ? parsed : ['*'];
 }
 
 /**
@@ -56,19 +86,24 @@ function parseAllowedOrigins(allowOriginString) {
  * @returns {string} The origin to use in Access-Control-Allow-Origin header
  */
 function getCorsOrigin(allowedOrigins, requestOrigin) {
-  if (allowedOrigins.includes('*')) {
-    // Wildcard: allow the specific origin (including 'null' for local files)
-    return requestOrigin || '*';
-  } else if (requestOrigin === 'null' || allowedOrigins.includes('null')) {
-    // Explicitly allow local file access
-    return 'null';
-  } else if (allowedOrigins.includes(requestOrigin)) {
-    // Allow specific whitelisted origin
-    return requestOrigin;
-  } else {
-    // Fallback to first allowed origin
-    return allowedOrigins[0];
+  const fallbackOrigin = allowedOrigins.find(origin => origin !== 'null') || allowedOrigins[0];
+
+  if (requestOrigin === 'null') {
+    if (allowedOrigins.includes('*') || allowedOrigins.includes('null')) {
+      return 'null';
+    }
+    return fallbackOrigin;
   }
+
+  if (allowedOrigins.includes('*')) {
+    return requestOrigin || '*';
+  }
+
+  if (requestOrigin && allowedOrigins.includes(requestOrigin)) {
+    return requestOrigin;
+  }
+
+  return fallbackOrigin;
 }
 
 /**
@@ -104,6 +139,15 @@ function isValidISODate(dateString) {
   return date instanceof Date && !isNaN(date.getTime());
 }
 
+function isBlankContent(content) {
+  for (let i = 0; i < content.length; i++) {
+    if (!/\s/.test(content[i])) {
+      return false;
+    }
+  }
+  return true;
+}
+
 export async function onRequestPost(context) {
   const { request, env } = context;
 
@@ -119,7 +163,19 @@ export async function onRequestPost(context) {
 
   try {
     // Parse request
-    const { content, password, timestamp } = await request.json();
+    let payload;
+    try {
+      payload = await request.json();
+    } catch (_error) {
+      return new Response(JSON.stringify({
+        error: 'Invalid JSON payload'
+      }), {
+        status: 400,
+        headers: corsHeaders
+      });
+    }
+
+    const { content, password, timestamp, lastSavedAt } = payload;
 
     // Rate limiting check
     const clientId = request.headers.get('CF-Connecting-IP') || 'unknown';
@@ -139,7 +195,7 @@ export async function onRequestPost(context) {
     }
 
     // Validate required fields
-    if (!content || !password) {
+    if (typeof content !== 'string' || typeof password !== 'string' || !content || !password) {
       return new Response(JSON.stringify({
         error: 'Missing required fields: content and password'
       }), {
@@ -160,7 +216,7 @@ export async function onRequestPost(context) {
     }
 
     // Validate content is not empty
-    if (content.trim().length === 0) {
+    if (isBlankContent(content)) {
       return new Response(JSON.stringify({
         error: 'Content cannot be empty'
       }), {
@@ -173,6 +229,15 @@ export async function onRequestPost(context) {
     if (timestamp && !isValidISODate(timestamp)) {
       return new Response(JSON.stringify({
         error: 'Invalid timestamp format. Must be ISO 8601 (e.g., 2025-01-01T12:00:00.000Z)'
+      }), {
+        status: 400,
+        headers: corsHeaders
+      });
+    }
+
+    if (lastSavedAt && !isValidISODate(lastSavedAt)) {
+      return new Response(JSON.stringify({
+        error: 'Invalid lastSavedAt format. Must be ISO 8601.'
       }), {
         status: 400,
         headers: corsHeaders
@@ -226,6 +291,47 @@ export async function onRequestPost(context) {
         } else if (currentFileResponse.status !== 404) {
           // File exists but we got an error (not "not found")
           throw new Error(`Failed to access repository file: ${currentFileResponse.status}`);
+        }
+
+        // Optional stale check for multi-device edits
+        if (lastSavedAt) {
+          try {
+            const commitsResponse = await fetch(
+              `https://api.github.com/repos/${env.GITHUB_REPO}/commits?path=${encodeURIComponent(filePath)}&per_page=1`,
+              {
+                headers: {
+                  'Authorization': `Bearer ${env.GITHUB_TOKEN}`,
+                  'User-Agent': `TiddlyWiki-Cloudflare-Saver/${VERSION}`,
+                  'Accept': 'application/vnd.github.v3+json'
+                }
+              }
+            );
+
+            if (commitsResponse.ok) {
+              const commits = await commitsResponse.json();
+              const latestCommitTime = commits?.[0]?.commit?.committer?.date;
+              const latestCommitSha = commits?.[0]?.sha;
+
+              if (latestCommitTime) {
+                const clientTime = new Date(lastSavedAt).getTime();
+                const serverTime = new Date(latestCommitTime).getTime();
+
+                if (!isNaN(clientTime) && !isNaN(serverTime) && serverTime > clientTime + 1000) {
+                  return new Response(JSON.stringify({
+                    error: 'Stale wiki detected. Please refresh before saving.',
+                    stale: true,
+                    serverCommitTime: latestCommitTime,
+                    serverCommitSha: latestCommitSha
+                  }), {
+                    status: 409,
+                    headers: corsHeaders
+                  });
+                }
+              }
+            }
+          } catch (_error) {
+            // Ignore stale check failures to avoid blocking saves
+          }
         }
 
         // Prepare content for GitHub (proper base64 encode with UTF-8 handling)

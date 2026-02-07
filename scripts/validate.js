@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 function validate() {
-  console.log('🔍 Validating plugin...');
+  console.log('[validate] Validating plugin...');
     
   const pluginPath = path.join(__dirname, '..', 'dist', 'cloudflare-saver-plugin.json');
 
@@ -45,14 +45,14 @@ function validate() {
         throw new Error(`Missing plugin.info fields: ${missingFields.join(', ')}`);
       }
 
-      console.log('✅ Validation passed!');
+      console.log('[validate] Validation passed.');
       console.log(`   Plugin: ${pluginInfo.title}`);
       console.log(`   Version: ${pluginInfo.version}`);
       console.log(`   Author: ${pluginInfo.author}`);
     }
 
   } catch (error) {
-    console.error('❌ Validation failed:', error.message);
+    console.error('[validate] Validation failed:', error.message);
     process.exit(1);
   }
 }

@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 function build() {
-  console.log('🔨 Building TiddlyWiki Cloudflare Saver Plugin...');
+  console.log('[build] Building TiddlyWiki Cloudflare Saver Plugin...');
     
   const srcDir = path.join(__dirname, '..', 'src');
   const distDir = path.join(__dirname, '..', 'dist');
@@ -38,6 +38,7 @@ function build() {
       { file: 'saver.js', type: 'application/javascript', 'module-type': 'saver', required: true },
       { file: 'startup.js', type: 'application/javascript', 'module-type': 'startup', required: true },
       { file: 'test-action.js', type: 'application/javascript', 'module-type': 'widget', required: true },
+      { file: 'health-check-action.js', type: 'application/javascript', 'module-type': 'widget', required: true },
       { file: 'clear-password-action.js', type: 'application/javascript', 'module-type': 'widget', required: true },
       { file: 'auto-detect-endpoint-action.js', type: 'application/javascript', 'module-type': 'widget', required: true },
       { file: 'location-utils.js', type: 'application/javascript', 'module-type': 'utils', required: true },
@@ -108,12 +109,12 @@ function build() {
 
         tiddlers[title] = tiddlerFields;
 
-        console.log(`✓ Added ${title}`);
+        console.log(`[build] Added ${title}`);
       } else {
         if (required) {
           missingRequired.push(file);
         }
-        console.warn(`⚠️  File not found: ${file}`);
+        console.warn(`[build] File not found: ${file}`);
       }
     });
 
@@ -146,13 +147,13 @@ function build() {
     const pluginTidPath = path.join(distDir, 'cloudflare-saver-plugin.tid');
     fs.writeFileSync(pluginTidPath, pluginTidContent);
 
-    console.log('✅ Build complete!');
+    console.log('[build] Build complete.');
     console.log(`   JSON: ${pluginJsonPath}`);
     console.log(`   TID: ${pluginTidPath}`);
     console.log(`   Tiddlers: ${Object.keys(tiddlers).length}`);
 
   } catch (error) {
-    console.error('❌ Build failed:', error.message);
+    console.error('[build] Build failed:', error.message);
     process.exit(1);
   }
 }

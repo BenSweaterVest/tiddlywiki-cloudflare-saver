@@ -105,10 +105,14 @@ Features:
     const timeoutId = setTimeout(() => controller.abort(), config.timeout);
 
     try {
+      const lastSaveTiddler = self.wiki.getTiddler('$:/config/cloudflare-saver/stats/last-save-status');
+      const lastSavedAt = lastSaveTiddler ? (lastSaveTiddler.fields['last-save-time'] || '') : '';
+
       const payload = {
         content: text,
         password,
         timestamp: new Date().toISOString(),
+        lastSavedAt,
         retryCount
       };
 
@@ -130,7 +134,7 @@ Features:
 
         // Update statistics
         self._incrementStat('successful-saves');
-        self._updateLastSave('success');
+        self._updateLastSave('success', null, response.status);
 
         callback(null);
         self._showNotification('success', config);
@@ -155,6 +159,7 @@ Features:
     const maxRetries = config.autoRetry ? 3 : 0;
 
     let errorMsg = 'Cloudflare save failed';
+    let staleDetected = false;
     if(status) {
       errorMsg += `: HTTP ${status}`;
       if(statusText) {
@@ -168,6 +173,10 @@ Features:
         const response = JSON.parse(responseText);
         if(response.error) {
           errorMsg += ` - ${response.error}`;
+        }
+        if(response.stale) {
+          staleDetected = true;
+          errorMsg = 'Your wiki is out of date. Please refresh the page before saving again.';
         }
         // Add rate limit information if available
         if(response.resetIn) {
@@ -189,19 +198,21 @@ Features:
     } else if(status === 413) {
       errorMsg = 'Content too large. Your TiddlyWiki exceeds the maximum allowed size.';
     } else if(status === 409) {
-      errorMsg = 'Conflict detected. Another save may be in progress.';
+      errorMsg = staleDetected
+        ? 'Your wiki is out of date. Please refresh the page before saving again.'
+        : 'Conflict detected. Another save may be in progress.';
     }
 
     if(config.debug) {
       console.error('[CloudflareSaver] Error:', errorMsg, {
         status,
         retryCount,
-        willRetry: retryCount < maxRetries && status !== 401
+        willRetry: retryCount < maxRetries && status !== 401 && status !== 409 && status !== 429
       });
     }
 
     // Retry logic (don't retry auth failures or rate limits)
-    if(retryCount < maxRetries && status !== 401 && status !== 429) {
+    if(retryCount < maxRetries && status !== 401 && status !== 429 && status !== 409) {
       const retryDelay = Math.min(1000 * Math.pow(2, retryCount), 10000);
       if(config.debug) {
         console.log(`[CloudflareSaver] Retrying in ${retryDelay / 1000} seconds...`);
@@ -212,7 +223,7 @@ Features:
     } else {
       // Update statistics for final failure
       self._incrementStat('failed-saves');
-      self._updateLastSave('failure', errorMsg);
+      self._updateLastSave('failure', errorMsg, status);
 
       callback(errorMsg);
       self._showNotification('failure', config);
@@ -228,13 +239,14 @@ Features:
     }));
   };
 
-  CloudflareSaver.prototype._updateLastSave = function(status, error) {
+  CloudflareSaver.prototype._updateLastSave = function(status, error, statusCode) {
     const timestamp = new Date().toISOString();
     this.wiki.addTiddler(new $tw.Tiddler({
       title: '$:/config/cloudflare-saver/stats/last-save-status',
       text: status,
       'last-save-time': timestamp,
-      'last-save-error': error || ''
+      'last-save-error': error || '',
+      'last-save-code': statusCode ? String(statusCode) : ''
     }));
   };
 
