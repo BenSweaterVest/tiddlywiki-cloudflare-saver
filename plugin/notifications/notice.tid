@@ -1,0 +1,3 @@
+title: $:/plugins/BenSweaterVest/cloudflare-saver/notice
+
+<$text text={{$:/temp/cloudflare-saver/status!!notice}}/>

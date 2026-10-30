@@ -1,4 +1,0 @@
-<div class="tc-notification-banner">
-<$button class="tc-btn-invisible tc-notification-btn" message="tm-close-tiddler">{{$:/core/images/close-button}}</$button>
-<span class="tc-notification-loading">{{$:/core/images/spiral}}</span> Saving to GitHub via Cloudflare...
-</div>

@@ -1,0 +1,18 @@
+title: $:/plugins/BenSweaterVest/cloudflare-saver/readme
+
+Saves this wiki to a GitHub repository through your own Cloudflare Worker. Everything runs on the free plans of Cloudflare and GitHub.
+
+!! How it works
+
+* Your Worker serves this wiki straight from GitHub and commits each save back to the repository, so you get the full history of every save.
+* Nothing is rebuilt or redeployed when you save.
+* You sign in once with your wiki password. The session lasts 30 days by default.
+* If the wiki was changed on another device since you opened it, you are asked before anything is overwritten.
+* The saver only switches on when the wiki is loaded from your Worker. Opened any other way, the usual savers work as before.
+
+!! Where to find things
+
+* Settings and status: [[Control Panel > Saving|$:/core/ui/ControlPanel/Saving]] > Cloudflare Saver
+* Sign-in, diagnostics and wiki upload: the `/_saver/` page on your Worker
+
+Setup guide and troubleshooting: https://github.com/BenSweaterVest/tiddlywiki-cloudflare-saver
