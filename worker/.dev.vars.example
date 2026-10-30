@@ -1,0 +1,11 @@
+# Secrets for the Worker. For local development copy this file to .dev.vars.
+# In production set them with `npx wrangler secret put <NAME>` or in the
+# Cloudflare dashboard (Worker > Settings > Variables and Secrets).
+
+# Fine-grained GitHub token limited to the wiki repository,
+# with "Contents: Read and write" permission.
+GITHUB_TOKEN=
+
+# Password used to sign in to the wiki. At least 12 characters; a long
+# passphrase is best.
+WIKI_PASSWORD=
