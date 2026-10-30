@@ -4,38 +4,57 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+
+permissions:
+  contents: read
 
 jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18, 20]
-
+        node-version: [20, 22, 24]
     steps:
       - uses: actions/checkout@v6
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
-          cache-dependency-path: package-lock.json
 
       - run: npm ci
-
-      - name: Lint code
-        run: npm run lint
-
-      - run: npm run build
-      - run: npm run validate
+      - run: npm run lint
+      - name: Check the Worker's bundled plugin is up to date
+        run: npm run check:build
       - run: npm test
 
-      - name: Upload artifacts
-        if: matrix.node-version == 20
+  e2e:
+    # Runs the Worker in workerd (wrangler dev) against a fake GitHub API and
+    # drives a real TiddlyWiki in Chromium.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            worker/package-lock.json
+
+      - run: npm ci
+      - run: npm ci
+        working-directory: worker
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+        env:
+          E2E_SCREENSHOTS: e2e-screenshots
+
+      - name: Upload screenshots
+        if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: dist
-          path: dist/
-          
+          name: e2e-screenshots
+          path: e2e-screenshots/
+          if-no-files-found: ignore

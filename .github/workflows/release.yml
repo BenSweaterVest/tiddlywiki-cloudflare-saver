@@ -12,63 +12,39 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v6
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
-          cache-dependency-path: package-lock.json
 
-      - name: Install dependencies
-        run: npm ci
+      - run: npm ci
 
-      - name: Run tests
-        run: npm test
-
-      - name: Build plugin
-        run: npm run build
-
-      - name: Validate plugin
-        run: npm run validate
-
-      - name: Extract version from tag
-        id: get_version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-
-      - name: Check if pre-release
-        id: check_prerelease
+      - name: Check the tag matches package.json
         run: |
-          if [[ "${{ steps.get_version.outputs.VERSION }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "PRERELEASE=false" >> $GITHUB_OUTPUT
-          else
-            echo "PRERELEASE=true" >> $GITHUB_OUTPUT
+          TAG="${GITHUB_REF_NAME#v}"
+          VERSION="$(node -p "require('./package.json').version")"
+          if [ "$TAG" != "$VERSION" ]; then
+            echo "Tag v$TAG does not match package.json version $VERSION" >&2
+            exit 1
           fi
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
+      - run: npm run lint
+      - run: npm run check:build
+      - run: npm test
+      - run: npm run build
+
+      - uses: softprops/action-gh-release@v2
         with:
           files: |
             dist/cloudflare-saver-plugin.json
             dist/cloudflare-saver-plugin.tid
-            demo/functions/save.js
           generate_release_notes: true
-          prerelease: ${{ steps.check_prerelease.outputs.PRERELEASE }}
+          prerelease: ${{ contains(github.ref_name, '-') }}
           body: |
-            ## Installation
+            ## Upgrading
 
-            ### For Node.js TiddlyWiki
-            Download `cloudflare-saver-plugin.json` and place it in your plugins directory.
+            Redeploy your Worker from this release (pull the changes into your Worker repository, or run `npx wrangler deploy` in `worker/`). Then open your wiki, go to Control Panel > Saving > Cloudflare Saver, and click **Update and reload** when it offers the new plugin version.
 
-            ### For Browser TiddlyWiki
-            Drag and drop `cloudflare-saver-plugin.tid` into your wiki.
-
-            ### Cloudflare Function
-            Copy `save.js` to your repository's `functions/` directory.
-
-            ## Full Documentation
-            See the [README](https://github.com/BenSweaterVest/tiddlywiki-cloudflare-saver#readme) for complete setup instructions.
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            The plugin files below are only needed for manual installs. Full instructions are in the [README](https://github.com/BenSweaterVest/tiddlywiki-cloudflare-saver#readme).
