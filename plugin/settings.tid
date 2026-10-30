@@ -1,0 +1,122 @@
+title: $:/plugins/BenSweaterVest/cloudflare-saver/settings
+caption: Cloudflare Saver
+tags: $:/tags/ControlPanel/Saving
+
+<$let st="$:/temp/cloudflare-saver/status">
+<div class="cfs-settings">
+
+<$list filter="[<st>field:detected[yes]]" emptyMessage="""<div class="cfs-panel">
+
+This wiki was ''not'' loaded from a Cloudflare Saver Worker, so this saver is switched off and the other savers work as usual. Open the wiki from your Worker's address to save to GitHub.
+
+</div>""">
+
+<$list filter="[<st>get[update-available]match[yes]]">
+<div class="cfs-panel">
+
+A newer version of this plugin (v<$text text={{{ [<st>get[server-version]] }}}/>) is available from your Worker.
+<$button message="tm-cloudflare-saver-update-plugin">Update and reload</$button>
+
+</div>
+</$list>
+
+!! Status
+
+<table class="cfs-table">
+<tr>
+<th>Signed in</th>
+<td>
+<$list filter="[<st>get[signed-in]match[yes]]">
+Yes. <$button message="tm-cloudflare-saver-signout" class="tc-btn-invisible tc-tiddlylink">Sign out</$button>
+</$list>
+<$list filter="[<st>get[signed-in]!match[yes]]">
+No. <$button message="tm-cloudflare-saver-signin" class="tc-btn-invisible tc-tiddlylink">Sign in</$button>
+</$list>
+</td>
+</tr>
+<tr>
+<th>Last save</th>
+<td>
+<$list filter="[<st>has[last-result]]" emptyMessage="Nothing saved since this page was opened">
+<span class={{{ [<st>get[last-result]match[success]then[]else[cfs-bad]] }}}><$text text={{{ [<st>get[last-message]] }}}/></span>
+(<$text text={{{ [<st>get[last-time]] }}}/>)
+<$list filter="[<st>get[last-commit-url]]" variable="url">
+<a href=<<url>> target="_blank" rel="noopener noreferrer">View commit</a>
+</$list>
+</$list>
+</td>
+</tr>
+<tr>
+<th>This session</th>
+<td><$text text={{{ [<st>get[saves]else[0]] }}}/> saved, <$text text={{{ [<st>get[failures]else[0]] }}}/> failed</td>
+</tr>
+<tr>
+<th>Plugin version</th>
+<td><$text text={{{ [<st>get[plugin-version]] }}}/></td>
+</tr>
+</table>
+
+!! Connection check
+
+<$button message="tm-cloudflare-saver-check">Check connection</$button>
+<a href="/_saver/" target="_blank" rel="noopener">Open the saver page</a>
+
+<$list filter="[<st>get[check-state]match[checking]]">
+
+Checking...
+
+</$list>
+<$list filter="[<st>get[check-state]match[failed]]">
+
+<span class="cfs-bad">Check failed: <$text text={{{ [<st>get[check-error]] }}}/></span>
+
+</$list>
+<$list filter="[<st>get[check-state]match[done]]">
+<$list filter="[<st>get[signed-in]match[yes]]" emptyMessage="""
+
+The Worker is reachable (v<$text text={{{ [<st>get[server-version]] }}}/>). Sign in to see repository details.
+
+""">
+<table class="cfs-table">
+<tr><th>Checked</th><td><$text text={{{ [<st>get[check-time]] }}}/></td></tr>
+<tr><th>Worker version</th><td><$text text={{{ [<st>get[server-version]] }}}/></td></tr>
+<tr><th>Repository</th><td>
+<$list filter="[<st>get[repo-url]]" variable="url" emptyMessage="""<$text text={{{ [<st>get[repo]] }}}/>""">
+<a href=<<url>> target="_blank" rel="noopener noreferrer"><$text text={{{ [<st>get[repo]] }}}/></a>
+</$list>
+</td></tr>
+<tr><th>Branch</th><td><$text text={{{ [<st>get[branch]] }}}/></td></tr>
+<tr><th>Wiki file</th><td><$text text={{{ [<st>get[wiki-path]] }}}/></td></tr>
+<tr><th>GitHub access</th><td>
+<$list filter="[<st>get[github]match[ok]]">OK</$list>
+<$list filter="[<st>get[github]match[read-only]]"><span class="cfs-bad">The token can read but not write. Give it the "Contents: Read and write" permission.</span></$list>
+<$list filter="[<st>get[github]prefix[error]]" variable="problem"><span class="cfs-bad"><$text text=<<problem>>/></span></$list>
+</td></tr>
+<tr><th>Token expires</th><td><$text text={{{ [<st>get[token-expires]else[Never, or not reported]] }}}/></td></tr>
+<tr><th>This copy</th><td>
+<$list filter="[<st>get[up-to-date]match[no]]" emptyMessage="Up to date">
+<span class="cfs-bad">A newer version was saved somewhere else. Reload to get it (save or download your changes first).</span>
+</$list>
+</td></tr>
+</table>
+</$list>
+</$list>
+
+!! Options
+
+<$checkbox tiddler="$:/config/cloudflare-saver/enabled" field="text" checked="yes" unchecked="no" default="yes"> Save to GitHub through the Worker</$checkbox>
+
+Minimum time between autosaves: <$edit-text tiddler="$:/config/cloudflare-saver/autosave-interval" tag="input" type="number" min="0" class="cfs-number"/> seconds
+
+<div class="tc-control-panel-hint">
+
+Every save is one commit. A longer gap means fewer commits while you edit. Clicking the save button is never delayed. Autosave itself is switched on or off under Saving > General.
+
+</div>
+
+<$checkbox tiddler="$:/config/cloudflare-saver/debug" field="text" checked="yes" unchecked="no" default="no"> Log details to the browser console</$checkbox>
+
+</$list>
+
+</div>
+</$let>

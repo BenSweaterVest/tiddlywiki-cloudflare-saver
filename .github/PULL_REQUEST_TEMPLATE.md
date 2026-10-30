@@ -34,11 +34,10 @@ Fixes #
 
 <!-- Describe the tests you ran and how to reproduce them -->
 
-- [ ] All existing tests pass (`npm test`)
+- [ ] `npm run check` passes (lint, bundled plugin up to date, unit tests)
+- [ ] `npm run test:e2e` passes (if the plugin or Worker changed)
 - [ ] New tests added for new functionality
 - [ ] Manual testing completed
-- [ ] Build succeeds (`npm run build`)
-- [ ] Validation passes (`npm run validate`)
 
 ### Test Coverage
 

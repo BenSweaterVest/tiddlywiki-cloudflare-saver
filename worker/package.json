@@ -1,0 +1,13 @@
+{
+  "name": "tiddlywiki-cloudflare-saver-worker",
+  "private": true,
+  "description": "Cloudflare Worker that serves a TiddlyWiki from GitHub and saves changes back",
+  "type": "module",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

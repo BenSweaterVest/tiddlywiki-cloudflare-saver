@@ -1,0 +1,3 @@
+# Keep line endings consistent so generated files never show spurious diffs.
+* text=auto eol=lf
+*.png binary

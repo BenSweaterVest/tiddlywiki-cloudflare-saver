@@ -1,30 +1,20 @@
 # Dependencies
 node_modules/
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 
-# Testing
-coverage/
-.nyc_output/
+# Build output (attached to GitHub releases; the Worker bundles its own copy)
+dist/
 
-# Production build (keep dist/ as it's part of the plugin distribution)
-# dist/ - intentionally not ignored as it contains plugin artifacts
-
-# Environment variables
+# Local secrets and Wrangler state
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*
+.dev.vars
+.wrangler/
 
-# IDE
+# Editors and OS
 .vscode/
 .idea/
 *.swp
-*.swo
 *~
 .DS_Store
-
-# OS
 Thumbs.db

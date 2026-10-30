@@ -1,0 +1,40 @@
+// Cloudflare Worker configuration for TiddlyWiki Cloudflare Saver.
+// Everything here runs on the Workers Free plan.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "tiddlywiki",
+  "main": "src/index.js",
+  "compatibility_date": "2025-09-01",
+  "workers_dev": true,
+
+  // Settings. Edit these here (not in the dashboard) so a redeploy never
+  // resets them. Secrets (GITHUB_TOKEN, WIKI_PASSWORD) are set separately
+  // and are never stored in this file.
+  "vars": {
+    // Repository that stores the wiki, as "owner/repo". Required.
+    "GITHUB_REPO": "",
+    // Branch to read and write. Empty means the repository's default branch.
+    "GITHUB_BRANCH": "",
+    // Path of the wiki file inside the repository.
+    "WIKI_PATH": "index.html",
+    // "public": anyone with the link can view, sign-in needed to save.
+    // "private": sign-in needed to view and save.
+    "READ_ACCESS": "public",
+    // How long a sign-in lasts, in days.
+    "SESSION_DAYS": "30",
+    // Commit message used for saves.
+    "COMMIT_MESSAGE": "Update wiki",
+    // Largest wiki accepted, in MB (at most 74 on the free plan).
+    "MAX_WIKI_MB": "50",
+    // GitHub API address. Only change this for GitHub Enterprise Server.
+    "GITHUB_API_URL": "https://api.github.com"
+  },
+
+  // Shared counter of failed sign-ins, so password guessing is throttled
+  // across every Cloudflare location. SQLite-backed Durable Objects are
+  // included in the Workers Free plan.
+  "durable_objects": {
+    "bindings": [{ "name": "LOGIN_LIMITER", "class_name": "LoginLimiter" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["LoginLimiter"] }]
+}

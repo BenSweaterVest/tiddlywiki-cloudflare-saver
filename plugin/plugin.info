@@ -1,0 +1,10 @@
+{
+  "title": "$:/plugins/BenSweaterVest/cloudflare-saver",
+  "name": "Cloudflare Saver",
+  "description": "Save to GitHub through your own free Cloudflare Worker",
+  "author": "BenSweaterVest",
+  "core-version": ">=5.3.0",
+  "source": "https://github.com/BenSweaterVest/tiddlywiki-cloudflare-saver",
+  "plugin-type": "plugin",
+  "list": "readme"
+}

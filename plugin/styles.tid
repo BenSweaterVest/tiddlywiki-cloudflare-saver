@@ -1,0 +1,101 @@
+title: $:/plugins/BenSweaterVest/cloudflare-saver/styles
+tags: $:/tags/Stylesheet
+
+\rules only filteredtranscludeinline transcludeinline macrodef macrocallinline
+
+.cfs-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.cfs-dialog {
+  width: 100%;
+  max-width: 520px;
+  padding: 20px;
+  border: 1px solid <<colour modal-border>>;
+  border-radius: 8px;
+  background: <<colour modal-background>>;
+  color: <<colour foreground>>;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.cfs-dialog-title {
+  margin: 0 0 8px;
+  font-size: 1.2em;
+}
+
+.cfs-dialog-message {
+  margin: 0 0 12px;
+  line-height: 1.45;
+}
+
+.cfs-dialog-label {
+  display: block;
+  font-weight: bold;
+}
+
+.cfs-dialog-input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 6px;
+  padding: 8px;
+  font-size: 1em;
+}
+
+.cfs-dialog-error {
+  min-height: 1.4em;
+  margin: 8px 0 0;
+  color: <<colour alert-highlight>>;
+}
+
+.cfs-dialog-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.cfs-button {
+  padding: 6px 14px;
+  border: 1px solid <<colour button-border>>;
+  border-radius: 4px;
+  background: <<colour button-background>>;
+  color: <<colour button-foreground>>;
+  cursor: pointer;
+}
+
+.cfs-button-primary {
+  border-color: <<colour primary>>;
+  background: <<colour primary>>;
+  color: <<colour background>>;
+}
+
+.cfs-settings .cfs-table th {
+  text-align: left;
+  font-weight: normal;
+  color: <<colour muted-foreground>>;
+  padding-right: 1em;
+}
+
+.cfs-settings .cfs-panel {
+  margin: 0.5em 0;
+  padding: 0.6em 0.9em;
+  border-left: 3px solid <<colour primary>>;
+  background: <<colour tiddler-info-background>>;
+}
+
+.cfs-settings .cfs-bad {
+  color: <<colour alert-highlight>>;
+}
+
+.cfs-settings .cfs-number {
+  width: 5em;
+}

@@ -1,162 +1,165 @@
 #!/usr/bin/env node
+/**
+ * Builds the TiddlyWiki plugin from plugin/ and writes:
+ *   dist/cloudflare-saver-plugin.json   (drag-and-drop or Node.js import)
+ *   dist/cloudflare-saver-plugin.tid
+ *   worker/src/generated/plugin.js      (bundled into the Worker)
+ *
+ * The version comes from package.json only.
+ *
+ * Usage: node scripts/build.js [--check]
+ *   --check  verify worker/src/generated/plugin.js is up to date, write nothing
+ */
+
+'use strict';
 
 const fs = require('fs');
 const path = require('path');
 
-function build() {
-  console.log('[build] Building TiddlyWiki Cloudflare Saver Plugin...');
-    
-  const srcDir = path.join(__dirname, '..', 'src');
-  const distDir = path.join(__dirname, '..', 'dist');
+const ROOT = path.join(__dirname, '..');
+const PLUGIN_DIR = path.join(ROOT, 'plugin');
+const DIST_DIR = path.join(ROOT, 'dist');
+const GENERATED = path.join(ROOT, 'worker', 'src', 'generated', 'plugin.js');
 
-  // Ensure dist directory exists
-  if (!fs.existsSync(distDir)) {
-    fs.mkdirSync(distDir, { recursive: true });
-  }
+const REQUIRED_TITLES = [
+  '$:/plugins/BenSweaterVest/cloudflare-saver/core.js',
+  '$:/plugins/BenSweaterVest/cloudflare-saver/dialogs.js',
+  '$:/plugins/BenSweaterVest/cloudflare-saver/saver.js',
+  '$:/plugins/BenSweaterVest/cloudflare-saver/startup.js',
+  '$:/plugins/BenSweaterVest/cloudflare-saver/settings',
+  '$:/plugins/BenSweaterVest/cloudflare-saver/readme'
+];
 
-  try {
-    // Read plugin.info
-    const pluginInfoPath = path.join(srcDir, 'plugin.info');
-    const pluginInfoContent = fs.readFileSync(pluginInfoPath, 'utf8');
-    const pluginInfo = JSON.parse(pluginInfoContent);
-        
-    console.log(`Building ${pluginInfo.title} v${pluginInfo.version}`);
-
-    // Initialize tiddlers
-    const tiddlers = {};
-    const namespace = 'BenSweaterVest/cloudflare-saver';
-
-    // Add plugin.info
-    tiddlers[`$:/plugins/${namespace}/plugin.info`] = {
-      title: `$:/plugins/${namespace}/plugin.info`,
-      type: 'application/json',
-      text: JSON.stringify(pluginInfo, null, 2)
-    };
-
-    // Source files to process
-    const files = [
-      { file: 'saver.js', type: 'application/javascript', 'module-type': 'saver', required: true },
-      { file: 'startup.js', type: 'application/javascript', 'module-type': 'startup', required: true },
-      { file: 'test-action.js', type: 'application/javascript', 'module-type': 'widget', required: true },
-      { file: 'health-check-action.js', type: 'application/javascript', 'module-type': 'widget', required: true },
-      { file: 'clear-password-action.js', type: 'application/javascript', 'module-type': 'widget', required: true },
-      { file: 'auto-detect-endpoint-action.js', type: 'application/javascript', 'module-type': 'widget', required: true },
-      { file: 'location-utils.js', type: 'application/javascript', 'module-type': 'utils', required: true },
-      { file: 'settings.tid', type: 'text/vnd.tiddlywiki', required: true },
-      { file: 'wizard.tid', type: 'text/vnd.tiddlywiki', required: true },
-      { file: 'readme.tid', type: 'text/vnd.tiddlywiki', required: true }
-    ];
-
-    // Add notifications
-    const notificationsDir = path.join(srcDir, 'notifications');
-    if (fs.existsSync(notificationsDir)) {
-      const notificationFiles = fs.readdirSync(notificationsDir);
-      notificationFiles.forEach(file => {
-        if (file.endsWith('.tid')) {
-          files.push({
-            file: `notifications/${file}`,
-            type: 'text/vnd.tiddlywiki'
-          });
-        }
-      });
-    }
-
-    // Process files
-    const missingRequired = [];
-    files.forEach(({ file, type, required, ...fields }) => {
-      const filePath = path.join(srcDir, file);
-
-      if (fs.existsSync(filePath)) {
-        const content = fs.readFileSync(filePath, 'utf8');
-        // Preserve .js extension for JavaScript files, remove .tid for tiddler files
-        const name = file.endsWith('.tid') ? file.replace(/\.tid$/, '') : file;
-        const title = `$:/plugins/${namespace}/${name}`;
-
-        const tiddlerFields = {
-          title,
-          type,
-          ...fields
-        };
-
-        // Parse .tid file format (metadata headers separated from content by blank line)
-        if (file.endsWith('.tid')) {
-          // Find the first blank line (two consecutive newlines)
-          const match = content.match(/^((?:.*\r?\n)*?)\r?\n([\s\S]*)$/);
-          if (match && match[1]) {
-            // Parse metadata headers
-            const headers = match[1];
-            const body = match[2] || '';
-
-            headers.split(/\r?\n/).forEach(line => {
-              const fieldMatch = line.match(/^([^:]+):\s*(.*)$/);
-              if (fieldMatch) {
-                const fieldName = fieldMatch[1].trim();
-                const fieldValue = fieldMatch[2].trim();
-                // Don't override type if already set
-                if (fieldName !== 'type' || !tiddlerFields.type) {
-                  tiddlerFields[fieldName] = fieldValue;
-                }
-              }
-            });
-
-            tiddlerFields.text = body;
-          } else {
-            tiddlerFields.text = content;
-          }
-        } else {
-          tiddlerFields.text = content;
-        }
-
-        tiddlers[title] = tiddlerFields;
-
-        console.log(`[build] Added ${title}`);
-      } else {
-        if (required) {
-          missingRequired.push(file);
-        }
-        console.warn(`[build] File not found: ${file}`);
-      }
-    });
-
-    // Fail build if required files are missing
-    if (missingRequired.length > 0) {
-      throw new Error(`Required files missing: ${missingRequired.join(', ')}`);
-    }
-
-    // Write plugin JSON
-    const plugin = { tiddlers };
-    const pluginJsonPath = path.join(distDir, 'cloudflare-saver-plugin.json');
-    fs.writeFileSync(pluginJsonPath, JSON.stringify(plugin, null, 2));
-
-    // Write plugin TID - proper TiddlyWiki plugin format
-    // This creates a single tiddler with metadata fields and JSON content
-    const tidFields = [
-      `author: ${pluginInfo.author}`,
-      `core-version: ${pluginInfo['core-version']}`,
-      `description: ${pluginInfo.description}`,
-      `list: ${pluginInfo.list}`,
-      'name: Cloudflare Saver',
-      `plugin-type: ${pluginInfo['plugin-type']}`,
-      `source: ${pluginInfo.source}`,
-      `title: ${pluginInfo.title}`,
-      'type: application/json',
-      `version: ${pluginInfo.version}`
-    ];
-
-    const pluginTidContent = `${tidFields.join('\n')  }\n\n${  JSON.stringify(plugin, null, 2)}`;
-    const pluginTidPath = path.join(distDir, 'cloudflare-saver-plugin.tid');
-    fs.writeFileSync(pluginTidPath, pluginTidContent);
-
-    console.log('[build] Build complete.');
-    console.log(`   JSON: ${pluginJsonPath}`);
-    console.log(`   TID: ${pluginTidPath}`);
-    console.log(`   Tiddlers: ${Object.keys(tiddlers).length}`);
-
-  } catch (error) {
-    console.error('[build] Build failed:', error.message);
-    process.exit(1);
-  }
+function listFiles(dir) {
+  return fs.readdirSync(dir, { withFileTypes: true })
+    .flatMap(entry => {
+      const full = path.join(dir, entry.name);
+      return entry.isDirectory() ? listFiles(full) : [full];
+    })
+    .sort();
 }
 
-build();
+/**
+ * Parse "name: value" lines up to the first blank line.
+ */
+function parseFields(block) {
+  const fields = {};
+  for (const line of block.split('\n')) {
+    const match = line.match(/^([^:\s]+):\s*(.*)$/);
+    if (match) {
+      fields[match[1]] = match[2].trim();
+    }
+  }
+  return fields;
+}
 
+function readTid(file) {
+  const content = fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n');
+  const split = content.indexOf('\n\n');
+  if (split === -1) {
+    throw new Error(`${file}: missing blank line after the header`);
+  }
+  return {
+    type: 'text/vnd.tiddlywiki',
+    ...parseFields(content.slice(0, split)),
+    // Drop the file's final newline so values like "yes" compare exactly.
+    text: content.slice(split + 2).replace(/\n$/, '')
+  };
+}
+
+function readJs(file) {
+  const content = fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n');
+  const header = content.match(/^\/\*\\\n([\s\S]*?)\n\n/);
+  if (!header) {
+    throw new Error(`${file}: missing /*\\ ... \\*/ header`);
+  }
+  const fields = parseFields(header[1]);
+  if (!fields['module-type']) {
+    throw new Error(`${file}: header needs a module-type`);
+  }
+  return { type: 'application/javascript', ...fields, text: content };
+}
+
+function buildPlugin() {
+  const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
+  const info = JSON.parse(fs.readFileSync(path.join(PLUGIN_DIR, 'plugin.info'), 'utf8'));
+  const tiddlers = {};
+
+  for (const file of listFiles(PLUGIN_DIR)) {
+    const relative = path.relative(PLUGIN_DIR, file);
+    let tiddler;
+    if (relative === 'plugin.info') {
+      continue;
+    } else if (file.endsWith('.tid')) {
+      tiddler = readTid(file);
+    } else if (file.endsWith('.js')) {
+      tiddler = readJs(file);
+    } else {
+      throw new Error(`Unexpected file in plugin/: ${relative}`);
+    }
+    if (!tiddler.title) {
+      throw new Error(`${relative}: no title field`);
+    }
+    if (tiddlers[tiddler.title]) {
+      throw new Error(`${relative}: duplicate title ${tiddler.title}`);
+    }
+    tiddlers[tiddler.title] = tiddler;
+  }
+
+  const missing = REQUIRED_TITLES.filter(title => !tiddlers[title]);
+  if (missing.length > 0) {
+    throw new Error(`Missing required tiddlers: ${missing.join(', ')}`);
+  }
+
+  return {
+    ...info,
+    version: pkg.version,
+    type: 'application/json',
+    text: JSON.stringify({ tiddlers }, null, 1)
+  };
+}
+
+function toTid(plugin) {
+  const { text, ...fields } = plugin;
+  const header = Object.keys(fields).sort().map(name => `${name}: ${fields[name]}`).join('\n');
+  return `${header}\n\n${text}`;
+}
+
+function generatedModule(plugin) {
+  return `// Generated by scripts/build.js from plugin/. Do not edit by hand.
+export const VERSION = ${JSON.stringify(plugin.version)};
+export const PLUGIN_TIDDLER = ${JSON.stringify(plugin, null, 2)};
+`;
+}
+
+function main() {
+  const check = process.argv.includes('--check');
+  const plugin = buildPlugin();
+  const moduleSource = generatedModule(plugin);
+
+  if (check) {
+    const current = fs.existsSync(GENERATED) ? fs.readFileSync(GENERATED, 'utf8') : '';
+    if (current !== moduleSource) {
+      console.error('worker/src/generated/plugin.js is out of date. Run `npm run build` and commit the result.');
+      process.exit(1);
+    }
+    console.log(`Plugin v${plugin.version} is up to date.`);
+    return;
+  }
+
+  fs.mkdirSync(DIST_DIR, { recursive: true });
+  fs.mkdirSync(path.dirname(GENERATED), { recursive: true });
+  fs.writeFileSync(path.join(DIST_DIR, 'cloudflare-saver-plugin.json'), `${JSON.stringify([plugin], null, 2)}\n`);
+  fs.writeFileSync(path.join(DIST_DIR, 'cloudflare-saver-plugin.tid'), toTid(plugin));
+  fs.writeFileSync(GENERATED, moduleSource);
+
+  const count = Object.keys(JSON.parse(plugin.text).tiddlers).length;
+  console.log(`Built plugin v${plugin.version} with ${count} tiddlers.`);
+}
+
+try {
+  main();
+} catch (error) {
+  console.error(`Build failed: ${error.message}`);
+  process.exit(1);
+}

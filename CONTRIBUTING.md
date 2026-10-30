@@ -1,255 +1,86 @@
-# Contributing to TiddlyWiki Cloudflare Saver
+# Contributing
 
-Thank you for your interest in contributing! This document provides guidelines and instructions for contributing to this project.
+Thanks for helping. Bug reports, ideas and pull requests are all welcome.
 
-## Code of Conduct
+## Reporting bugs and ideas
 
-Be respectful, inclusive, and professional. This is a welcoming community for everyone.
+Use the issue templates. For bugs, include the saver version (shown on your Worker's `/_saver/` page), your TiddlyWiki version and browser, and any console errors. Remove passwords and tokens first. Security problems go through [private reporting](SECURITY.md), not issues.
 
-## How Can I Contribute?
+For larger changes, open an issue first so we can agree on the approach.
 
-### Reporting Bugs
+## Project layout
 
-Before creating a bug report:
-- **Check existing issues** to avoid duplicates
-- **Test with the latest version** to see if the bug still exists
+```
+plugin/          TiddlyWiki plugin source
+  core.js        Talks to the Worker; queues, throttles and retries saves
+  dialogs.js     Sign-in and conflict dialogs (plain DOM)
+  saver.js       The saver module TiddlyWiki calls
+  startup.js     Status setup, version 1 clean-up, settings buttons
+  settings.tid   Control Panel > Saving > Cloudflare Saver
+  config/        Default settings (shadow tiddlers)
+worker/          Cloudflare Worker, deployable on its own
+  src/index.js   Routes
+  src/github.js  GitHub API client (streams the wiki, never decodes it)
+  src/auth.js    Password check, session cookies, cross-site protection
+  src/limiter.js Failed sign-in counting (Durable Object)
+  src/admin-page.js  The /_saver/ page
+  src/generated/plugin.js  Built from plugin/; do not edit
+scripts/build.js Builds the plugin
+test/            Unit tests, fake GitHub, end-to-end test
+```
 
-When creating a bug report, include:
-- **Clear title** describing the issue
-- **Steps to reproduce** the problem
-- **Expected behavior** vs. actual behavior
-- **Environment details**: Browser, TiddlyWiki version, plugin version
-- **Error messages** or console logs (if applicable)
-- **Screenshots** (if relevant)
+The version number lives only in `package.json`. The build copies it into the plugin and the Worker.
 
-### Suggesting Enhancements
+## Development
 
-Enhancement suggestions are welcome! Please include:
-- **Clear use case** explaining the need
-- **Proposed solution** or implementation ideas
-- **Alternatives considered**
-- **Potential impact** on existing functionality
-
-### Pull Requests
-
-#### Before You Start
-
-1. **Open an issue first** for significant changes to discuss the approach
-2. **Check existing PRs** to avoid duplicate work
-3. **Fork the repository** and create a feature branch
-
-#### Development Setup
+Needs Node.js 20 or later.
 
 ```bash
-# Clone your fork
-git clone https://github.com/YOUR_USERNAME/tiddlywiki-cloudflare-saver.git
-cd tiddlywiki-cloudflare-saver
-
-# Install dependencies
-npm install
-
-# Run tests
-npm test
-
-# Build the plugin
-npm run build
-
-# Validate the build
-npm run validate
+npm ci
 ```
-
-#### Development Workflow
-
-1. **Create a feature branch**
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-
-2. **Make your changes**
-   - Write clean, readable code
-   - Follow existing code style
-   - Add comments for complex logic
-   - Use modern JavaScript (const/let, async/await, Fetch API)
-
-3. **Write/update tests**
-   - Add tests for new features
-   - Update tests for changed behavior
-   - Ensure all tests pass: `npm test`
-
-4. **Update documentation**
-   - Update README.md if needed
-   - Update CHANGELOG.md with your changes
-   - Add JSDoc comments for new functions
-
-5. **Build and validate**
-   ```bash
-   npm run build
-   npm run validate
-   npm test
-   ```
-
-6. **Commit your changes**
-   - Use clear, descriptive commit messages
-   - Follow the format: `type: description`
-   - Examples:
-     - `feat: add support for custom commit messages`
-     - `fix: resolve timeout handling in saver.js`
-     - `docs: update installation instructions`
-     - `test: add tests for CORS helper functions`
-     - `refactor: extract validation logic`
-     - `chore: update dependencies`
-
-7. **Push and create PR**
-   ```bash
-   git push origin feature/your-feature-name
-   ```
-   - Create PR on GitHub
-   - Fill out the PR template
-   - Link related issues
-
-#### PR Guidelines
-
-- **One feature per PR** - Keep PRs focused and reviewable
-- **Pass all tests** - CI must be green
-- **Update tests** - Add/modify tests as needed
-- **Update docs** - Keep documentation current
-- **Clean history** - Squash trivial commits if needed
-- **Respond to feedback** - Address review comments promptly
-
-## Code Style
-
-### JavaScript
-
-- Use **const/let** instead of var
-- Use **async/await** for asynchronous code
-- Use **Fetch API** instead of XMLHttpRequest
-- Prefer **arrow functions** for callbacks
-- Use **template literals** for string interpolation
-- Add **JSDoc comments** for functions
-
-Example:
-```javascript
-/**
- * Validates save configuration
- * @param {Object} config - Configuration object
- * @returns {boolean} True if valid
- */
-const validateConfig = (config) => {
-  const { endpoint, timeout } = config;
-  return endpoint && timeout >= 5;
-};
-```
-
-### File Structure
-
-```
-tiddlywiki-cloudflare-saver/
-├── src/               # Plugin source files
-│   ├── saver.js       # Main saver module
-│   ├── startup.js     # Startup/initialization
-│   ├── settings.tid   # Settings UI
-│   └── ...
-├── demo/functions/    # Cloudflare Function example
-│   └── save.js        # Reference implementation
-├── scripts/           # Build and validation scripts
-├── __tests__/         # Test files
-├── dist/              # Built plugin files (generated)
-└── templates/         # User-facing templates
-```
-
-## Testing
-
-### Running Tests
 
 ```bash
-# Run all tests
-npm test
-
-# Run tests in watch mode (during development)
-npm test -- --watch
-
-# Run specific test file
-npm test __tests__/validation.test.js
+npm run check
 ```
 
-### Writing Tests
+`npm run check` runs the linter, verifies `worker/src/generated/plugin.js` matches `plugin/`, and runs the unit tests. After changing anything in `plugin/`, run `npm run build` and commit the regenerated file.
 
-- Place tests in `__tests__/` directory
-- Name test files with `.test.js` suffix
-- Group related tests with `describe()` blocks
-- Use clear test descriptions
+### End-to-end test
 
-Example:
-```javascript
-describe('getCorsOrigin', () => {
-  test('returns wildcard for wildcard allowed origins', () => {
-    const result = getCorsOrigin(['*'], 'https://example.com');
-    expect(result).toBe('https://example.com');
-  });
-});
-```
-
-## Building
-
-The build process compiles source files into distributable plugin formats:
+The end-to-end test runs the real Worker in `wrangler dev`, a fake GitHub API, and a real TiddlyWiki in headless Chromium. It covers upload, sign-in, saving, conflicts and reloading.
 
 ```bash
-npm run build
+npm ci --prefix worker
 ```
 
-This creates:
-- `dist/cloudflare-saver-plugin.json` - For Node.js TiddlyWiki
-- `dist/cloudflare-saver-plugin.tid` - For browser drag-and-drop
+```bash
+npx playwright install chromium
+```
 
-## Versioning
+```bash
+npm run test:e2e
+```
 
-We follow [Semantic Versioning](https://semver.org/):
-- **MAJOR**: Breaking changes
-- **MINOR**: New features (backward compatible)
-- **PATCH**: Bug fixes (backward compatible)
+Set `E2E_SCREENSHOTS=some-folder` to keep screenshots of each step.
 
-## Release Process
+### Trying it by hand
 
-(For maintainers)
+Copy `worker/.dev.vars.example` to `worker/.dev.vars`, fill in a real token and a password, set `GITHUB_REPO` in `wrangler.jsonc` (or pass `--var GITHUB_REPO:owner/repo`), then run `npx wrangler dev` in `worker/` and open `http://localhost:8787/_saver/`.
 
-1. Update version in `package.json`
-2. Update VERSION constant in `demo/functions/save.js`
-3. Update CHANGELOG.md with release date
-4. Build and test: `npm run build && npm test`
-5. Commit: `git commit -m "chore: Bump version to X.Y.Z"`
-6. Tag: `git tag -a vX.Y.Z -m "Release vX.Y.Z"`
-7. Push: `git push && git push --tags`
-8. Create GitHub release with built files
+## Guidelines
 
-## Documentation
+- **Stay free.** Everything must keep working on the free plans of Cloudflare and GitHub with no payment method on file. Keep Worker CPU time low: stream, don't parse or re-encode the wiki.
+- **Match the surrounding code.** Two-space indent, single quotes, semicolons; `npm run lint:fix` handles most of it.
+- **Test behavior.** Add or update tests for anything you change. The plugin tests boot the real TiddlyWiki core, so prefer them over mocks.
+- **Keep docs current.** Update the README and add a line under "Unreleased" in [CHANGELOG.md](CHANGELOG.md).
+- **Commit messages** in the form `type: summary`, for example `fix: keep wiki dirty when a save fails`.
 
-### README.md
+## Releasing (maintainers)
 
-- Keep setup instructions current
-- Update examples when API changes
-- Test all command examples
-
-### CHANGELOG.md
-
-Follow [Keep a Changelog](https://keepachangelog.com/) format:
-- Add entries under "Unreleased" during development
-- Use categories: Added, Changed, Deprecated, Removed, Fixed, Security
-- Be specific and user-focused
-
-### Code Comments
-
-- Explain **why**, not what (code shows what)
-- Document complex algorithms
-- Note any workarounds or edge cases
-
-## Questions?
-
-- **General questions**: Open a GitHub Discussion
-- **Bug reports**: Open an Issue
-- **Security issues**: See [SECURITY.md](SECURITY.md)
+1. Set the new version in `package.json`, run `npm run build`, and move the "Unreleased" changelog entries under the new version.
+2. Commit, then tag: `git tag vX.Y.Z` and push the tag.
+3. The release workflow checks the tag matches `package.json`, runs the checks, and publishes a GitHub release with the plugin files.
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the MIT License.
-
-Thank you for contributing! 🎉
+By contributing you agree that your contributions are licensed under the MIT License.

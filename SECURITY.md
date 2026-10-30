@@ -1,153 +1,51 @@
-﻿# Security Policy
+# Security Policy
 
-## Supported Versions
-
-We actively maintain and provide security updates for the following versions:
+## Supported versions
 
 | Version | Supported |
 | ------- | --------- |
-| 1.1.x   | Yes       |
-| 1.0.x   | Yes       |
-| < 1.0   | No        |
+| 2.x     | Yes       |
+| 1.x     | No. Version 1 sent the password with every save, compared it in a way that leaked timing, and had a rate limit that only applied within one server instance. Please upgrade. |
 
-## Reporting a Vulnerability
+## Reporting a vulnerability
 
-We take security vulnerabilities seriously. If you discover a security issue, please follow these steps:
+Please do not open a public issue. Use GitHub's private reporting instead: go to the [Security tab](https://github.com/BenSweaterVest/tiddlywiki-cloudflare-saver/security) and click **Report a vulnerability**.
 
-### 1. Do NOT Open a Public Issue
+Include what you found, how to reproduce it, the impact you expect, and the affected version. You should get a first response within a week. Fixes are released as patch versions and noted in the [changelog](CHANGELOG.md).
 
-Please do not create a public GitHub issue for security vulnerabilities, as this could put users at risk.
+## Security model
 
-### 2. Report Privately
+This project is meant for personal wikis: one owner, one password.
 
-Instead, please report security vulnerabilities by:
+### What protects what
 
-- **Email**: Create a security advisory on GitHub
-  - Go to the [Security tab](https://github.com/BenSweaterVest/tiddlywiki-cloudflare-saver/security)
-  - Click "Report a vulnerability"
-  - Provide detailed information about the vulnerability
+| Asset | Protection |
+| --- | --- |
+| GitHub token | Stored only as a Worker secret. It never reaches the browser and is never logged. Use a fine-grained token limited to the wiki repository with **Contents: Read and write** only. |
+| Wiki password | Stored only as a Worker secret. Sent once, at sign-in, over HTTPS. Compared by hashing both sides with SHA-256 and comparing the digests in constant time. Must be at least 12 characters. |
+| Session | An HMAC-SHA256 signed token with an expiry, in a `__Host-` cookie marked `Secure`, `HttpOnly` and `SameSite=Lax`. Page scripts cannot read it. The signing key is derived from the password, so changing the password ends every session. |
+| Saves and sign-in | Every state-changing request must carry a custom `X-Saver-Request` header. Browsers will not send that header from another site without a CORS preflight, and the Worker never approves preflights. Requests with a foreign `Origin` header are also refused. |
+| Password guessing | Failed sign-ins are counted in a Durable Object shared by every Cloudflare location: 5 failures per IP address locks that address for 15 minutes, and 50 failures in an hour locks sign-in for everyone for up to an hour. Signed-in browsers keep working during a lockout. |
+| Overwrites | Saves name the version they were based on. GitHub refuses the commit if the file changed since, and the user decides what to do. Every version stays in the Git history. |
+| Private wikis | With `READ_ACCESS=private`, the wiki is only served to signed-in browsers, with `Cache-Control: private`. |
 
-Or open a private issue in the repository's security tab.
+### Things to be aware of
 
-### 3. Include These Details
+- **A public wiki is public.** With `READ_ACCESS=public` (the default) anyone who knows the address can read the whole wiki, including tiddlers you consider hidden. A private GitHub repository does not change this.
+- **The repository holds everything.** Anyone with access to the GitHub repository can read the wiki and its full history. Deleting a tiddler does not remove it from old commits.
+- **The wiki page has no Content Security Policy.** TiddlyWiki needs inline scripts and `eval`, and plugins you install run with full access to the page. Only install plugins you trust. The Worker's own `/_saver/` page does use a strict policy.
+- **A signed-in browser can save anything.** Sign out on shared computers. Sessions last `SESSION_DAYS` (30 by default).
+- **Lockouts can be triggered by others.** Someone who keeps guessing can stop new sign-ins for up to an hour. Existing sessions are not affected.
+- **Free plan limits are a ceiling, not a bill.** If someone floods the Worker past the free daily request allowance, it stops answering until the next day. You are not charged.
+- **Token expiry.** Fine-grained tokens expire. The `/_saver/` page and the plugin's **Check connection** show the expiry date. Replace the token before then.
 
-When reporting a vulnerability, please include:
+### If something leaks
 
-- **Description** of the vulnerability
-- **Steps to reproduce** the issue
-- **Potential impact** of the vulnerability
-- **Suggested fix** (if you have one)
-- **Affected versions** (if known)
+- **Token:** revoke it on GitHub, create a new one, and update the `GITHUB_TOKEN` secret. Check the repository history for commits you did not make.
+- **Password:** change the `WIKI_PASSWORD` secret. Every existing session stops working immediately.
 
-### 4. Response Timeline
+## For contributors
 
-- **Initial Response**: Within 48 hours
-- **Status Update**: Within 7 days
-- **Fix Timeline**: Depends on severity
-  - Critical: Within 7 days
-  - High: Within 14 days
-  - Medium: Within 30 days
-  - Low: Next regular release
-
-## Security Best Practices
-
-### For Plugin Users
-
-1. **Protect Your Credentials**
-   - Never commit `.env` files or expose `SAVE_PASSWORD` or `GITHUB_TOKEN`
-   - Use GitHub's encrypted secrets for environment variables
-   - Rotate tokens regularly
-
-2. **Use Fine-Grained Tokens**
-   - Prefer GitHub fine-grained personal access tokens over classic tokens
-   - Grant only necessary permissions (Contents: read/write)
-   - Set expiration dates on tokens
-
-3. **Configure CORS Properly**
-   - Don't use wildcard (`*`) for `ALLOWED_ORIGINS` in production
-   - Specify exact origins: `https://your-site.pages.dev`
-   - Review allowed origins regularly
-
-4. **Keep Dependencies Updated**
-   - Update the plugin when new versions are released
-   - Monitor security advisories for Cloudflare and GitHub APIs
-
-### For Contributors
-
-1. **Code Review**
-   - All PRs require review before merging
-   - Security-related changes get extra scrutiny
-
-2. **Dependency Management**
-   - Keep npm dependencies up to date
-   - Run `npm audit` before releasing
-   - Address high/critical vulnerabilities immediately
-
-3. **Secrets in Tests**
-   - Never commit real credentials in test files
-   - Use mocks and fixtures for testing
-
-## Known Security Considerations
-
-### Password Authentication
-
-The plugin uses password-based authentication for saves. While this is simple and effective for personal wikis:
-
-- **Passwords are transmitted over HTTPS** to the Cloudflare Function
-- **Passwords are compared as plain strings** (not cryptographic hashes)
-- **Rate limiting** prevents brute force attacks (30 requests/minute)
-
-This is acceptable for this use case because:
-- The password is stored as a Cloudflare environment secret
-- TLS encryption protects in-transit data
-- Rate limiting adds protection
-- This is for personal wikis, not high-security applications
-
-For higher security needs, consider:
-- Using GitHub OAuth instead of password auth
-- Implementing additional authentication layers
-- Using Cloudflare Access for additional protection
-
-### GitHub Token Storage
-
-- **GITHUB_TOKEN** is stored as a Cloudflare environment variable (encrypted at rest)
-- The token has write access to your repository
-- If compromised, an attacker could modify repository content
-
-**Mitigation**:
-- Use fine-grained tokens with minimal scope
-- Monitor repository activity for unauthorized commits
-- Rotate tokens if compromise is suspected
-
-### CORS Configuration
-
-Default CORS setting allows all origins (`*`). For production:
-
-```bash
-ALLOWED_ORIGINS=https://your-site.pages.dev
-```
-
-This prevents other sites from using your save function.
-
-## Disclosure Policy
-
-- We will acknowledge security researchers in release notes (unless they prefer to remain anonymous)
-- We follow responsible disclosure practices
-- We will coordinate disclosure timing with reporters
-
-## Security Updates
-
-Security updates will be:
-- Released as patch versions (e.g., 1.1.1)
-- Documented in CHANGELOG.md
-- Announced in GitHub releases
-- Tagged with "security" label
-
-## Questions?
-
-If you have questions about this security policy, please open a discussion in the GitHub repository.
-
-Thank you for helping keep TiddlyWiki Cloudflare Saver secure!
-
-
-
+- Never commit real tokens or passwords, including in tests. Use the fake GitHub in `test/helpers/`.
+- Any change to authentication, sessions or request handling needs tests in `test/worker.test.mjs`.
+- Keep dependencies current; Dependabot opens update PRs weekly.
