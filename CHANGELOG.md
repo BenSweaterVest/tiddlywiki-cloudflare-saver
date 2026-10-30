@@ -1,13 +1,54 @@
-﻿# Changelog
+# Changelog
 
-All notable changes to this project will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-- (none)
+## [2.0.0] - 2026-10-30
+
+A rewrite. The Cloudflare Pages site and Function are replaced by a single Cloudflare Worker that serves the wiki straight from GitHub and commits saves back. See "Upgrading from version 1" in the README.
+
+### Breaking changes
+- The wiki is served by the Worker, not by Cloudflare Pages. Saving only works from the Worker's address; saving from `file://` or other hosts is no longer supported.
+- `SAVE_PASSWORD` is renamed `WIKI_PASSWORD` and must be at least 12 characters. `FILE_PATH` is renamed `WIKI_PATH`.
+- `ALLOWED_ORIGINS` and `MAX_CONTENT_SIZE` are removed. There is no cross-origin access; use `MAX_WIKI_MB` for the size limit.
+- The plugin has no endpoint setting; it detects the Worker that served the page. Requires TiddlyWiki 5.3 or later.
+- The setup wizard, test-save button, auto-detect button, remembered-password option, timeout option and save statistics are removed. Version 1 settings are deleted from the wiki automatically.
+
+### Added
+- No builds on save: nothing is rebuilt or redeployed, so the Pages limit of 500 builds per month no longer applies.
+- Sign in once with a secure session cookie (`SESSION_DAYS`, default 30) instead of typing the password on every save.
+- Optional private wikis (`READ_ACCESS=private`).
+- Conflict detection based on the file's Git version, with a dialog to overwrite, download a copy, or cancel. Replaces the old clock-based check.
+- Recognises a save that succeeded even if its response was lost, instead of reporting a false conflict.
+- Autosave spacing (default 15 seconds) so editing doesn't create a commit per keystroke burst. Manual saves are never delayed.
+- `/_saver/` page: sign-in, diagnostics (repository access, push permission, token expiry), wiki upload with automatic plugin install, and a link to the save history.
+- Plugin settings show sign-in state, the last save with a link to its commit, a connection check, and a one-click plugin update when the Worker has a newer version.
+- Failed sign-ins are limited per address and globally using a Durable Object shared by all Cloudflare locations.
+- `GITHUB_BRANCH`, `READ_ACCESS`, `SESSION_DAYS`, `COMMIT_MESSAGE`, `MAX_WIKI_MB` and `GITHUB_API_URL` settings.
+- End-to-end test that runs the Worker in workerd and drives a real TiddlyWiki in Chromium.
+
+### Fixed
+- The wiki no longer stays marked as unsaved after every save. Version 1 wrote save statistics into `$:/config/` tiddlers, which TiddlyWiki counts as changes; status now lives in `$:/temp/`, which is never saved.
+- Edits made while a save is uploading are no longer marked as saved.
+- Saves can no longer overlap and conflict with each other; they are queued.
+- Settings defaults no longer create tiddlers (and unsaved changes) on first load.
+- Cancelling the password prompt no longer lets another saver run as well.
+- The settings panel follows the wiki's colour palette instead of fixed colours.
+- Worker CPU use no longer grows with wiki size: the wiki is streamed to and from GitHub without being parsed or re-encoded, which keeps it within the free plan's 10 ms limit.
+
+### Security
+- Password compared in constant time over SHA-256 digests; sessions signed with HMAC-SHA256 in `__Host-`, `HttpOnly`, `Secure` cookies.
+- Cross-site requests blocked by requiring a custom header and checking `Origin`.
+- The health check no longer reveals configuration to anonymous visitors.
+- The `/_saver/` page uses a strict Content Security Policy.
+
+### Changed
+- One version number, in `package.json`, used by the plugin and the Worker.
+- Tests use Node's built-in test runner; the plugin tests boot the real TiddlyWiki core. Jest is removed.
+- CI runs on Node 20, 22 and 24, checks the bundled plugin is current, and runs the end-to-end test. CodeQL updated to v3.
+- `dist/` is no longer committed; release builds attach the plugin files.
+- Documentation rewritten.
 
 ## [1.1.1] - 2026-02-06
 
